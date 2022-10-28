@@ -1,0 +1,102 @@
+#homepage-headder {
+    margin-left: 7%;
+    font-weight: bold;
+    color: #BA9291;
+}
+
+.home-image {
+    max-height: 100%;
+    max-width: 100%;
+    position: relative;
+    box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+    text-align: center;
+}
+
+.home-page {
+    padding: 3% 5% 0% 5% ;
+}
+
+.img-size {
+    height: 75%;
+    text-align: center;
+    background-size: cover;
+    min-height: 40vh;
+    background-position: center;
+}
+
+.image-name {
+    text-align: center;
+    color: black;
+    margin-top: 5%;
+}
+
+.item-container-row {
+    text-align: center;
+}
+
+.big-item-container {
+    margin-left: 4%;
+}
+
+.medium-item-container {
+    text-align: justify;
+}
+
+#recipe-carousel-big {
+    display: inherit !important;
+}
+
+#recipe-carousel-medium {
+    display: none !important;
+    margin-top: 5%;
+}
+
+.recipe-carusel-item {
+    background-color: white;
+    height: 60vh;
+    margin: 3%;
+    padding: 3%;
+    box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+}
+
+.medium-carousel-style {
+    margin-left: 4%;
+}
+
+.carousel-control-prev {
+    justify-content: flex-start !important;
+    padding-left: 2%;
+}
+
+.carousel-control-next {
+    justify-content: flex-end !important;
+    padding-right: 2%;
+}
+
+.carousel-control-prev-icon {
+    background-color: #BA9291 !important;
+    border-radius: 15px !important;
+}
+
+.carousel-control-next-icon {
+    background-color: #BA9291 !important;
+    border-radius: 15px !important;
+}
+
+@media only screen and (max-width: 992px) {
+    #recipe-carousel-big {
+        display: none !important;
+    }
+
+    #recipe-carousel-medium {
+        display: inherit !important;
+    }
+
+    .carousel-control-prev {
+        top: 30vh !important;
+    }
+    
+    .carousel-control-next {
+        top: 30vh !important;
+    }
+}

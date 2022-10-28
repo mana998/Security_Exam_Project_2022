@@ -1,0 +1,103 @@
+.recipe-img {
+    max-height: 100%;
+    max-width: 100%;
+}
+
+.image-container {
+    height: 40vh;  
+}
+
+.recipe-page {
+    padding: 3% 10% 0% 10%;
+}
+
+#recipe-container {
+    padding-top: 5%;
+}
+
+.description-headder {
+    padding-bottom: 2%;
+    padding-top: 5%;
+    border-bottom: 1px solid black;
+}
+
+.ingredients-headder {
+    padding-bottom: 2%;  
+}
+
+.page-title {
+    border-bottom: 1px solid black;
+    padding-bottom: 2%;
+    font-weight: bold;
+    color: #BA9291;
+}
+
+.icon {
+    max-width: 8%;
+    max-height: 8%;
+    cursor: pointer;
+    margin-left: 5%;
+}
+
+.likes {
+    text-align: center;
+    color: #BA9291;
+    display: inline-block;
+    font-weight: normal;
+    font-size: 90%;
+}
+
+#spread-icon {
+    max-width: 5% !important;
+    max-height: 5% !important;
+    margin-left: 5%;
+    cursor: pointer;
+}
+
+#img-container {
+    background-size: cover;
+    min-height: 60vh;
+    background-position: center;
+}
+
+.comment:not(:last-child) {
+    border-bottom: 1px solid #ba92912e;
+    margin-bottom: 2em;
+}
+
+.comment {
+    margin-top: 1em;
+}
+
+.comment-user {
+    display: inline-block;
+}
+
+.delete-icon {
+    height: 2em;
+    margin: 0em 1em 0.5rem 1em;
+}
+
+#submit-comment-button {
+    background-color: #BA9291;
+    border: 1px solid #BA9291;
+}
+
+#comment-area {
+    width: 100%;
+    margin-top: 0px;
+    margin-bottom: 0px;
+    height: 7em;
+}
+
+@media only screen and (max-width: 992px) {
+    .ingredients-headder {
+        padding-top: 5%;
+    }
+}
+
+@media only screen and (max-width: 992px) {
+    .ingredients-headder {
+        padding-top: 5%;
+    }
+}

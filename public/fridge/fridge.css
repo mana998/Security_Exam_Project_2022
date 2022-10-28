@@ -1,0 +1,62 @@
+.fridge-page {
+    padding: 3% 10% 0% 10%; 
+}
+
+.page-title {
+    border-bottom: 1px solid black;
+    padding-bottom: 2%;
+    font-weight: bold;
+    color: #BA9291;
+}
+
+.checkbox-style {
+    float: right;
+}
+
+.search-button {
+    margin-top: 3% 0%;
+    border: 2px solid #BA9291;
+}
+
+#recipes {
+    margin-top: 3%;
+}
+
+.icon {
+    max-width: 15%;
+    max-height: 15%;
+    cursor: pointer;
+    margin-left: 5%; 
+}
+
+#spread-icon {
+    max-width: 4%;
+    max-height: 4%;
+    margin-left: 5%;
+    cursor: pointer;
+}
+
+.account-recipe-item {
+    margin: 3%;
+}
+
+@media only screen and (max-width: 992px)  {
+    #spread-icon {
+        max-width: 5%;
+        max-height: 5%;  
+    }
+}
+
+@media only screen and (max-width: 768px)  {
+    #spread-icon {
+        max-width: 7%;
+        max-height: 7%;
+    }
+
+    .icon {
+        max-width: 12%;
+        max-height: 12%;
+        cursor: pointer;
+        margin-left: 5%; 
+    }
+}

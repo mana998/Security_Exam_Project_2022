@@ -1,0 +1,145 @@
+.chat-container {
+    display: block;
+    position: fixed;
+    width: 15em;
+    right: 0%;
+    bottom: 0%;
+    cursor: pointer;
+    background-color: #ffffff;
+    border: 1px solid #BA9291;
+    box-shadow: -0.1em 0.5em 0.5em #f8f8f8;
+    z-index: 2;
+    max-height: 40em;
+}
+
+.chat-container-users {
+    overflow-y: auto;
+    max-height: 40em;
+}
+
+.user-chat-item {
+    float: right;
+    width: 15em;
+    border: 1px solid #9e7f7e;
+    background-color: white;
+    bottom: 0;
+    position: fixed;
+    z-index: 2;
+}
+
+.control-bar-user {
+    padding: 0.25em 1em;
+    background-color: #f8f8f8;
+    background-color: #ba9291
+}
+
+.user-messages {
+    height: 15em;
+    padding: 0.5em;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+.user-item {
+    display: block;
+    background-color: none;
+    transition-duration: 0.3s;
+    border-top: #f8f8f8 1px solid;
+}
+
+.user-item:hover {
+    transition-duration: 0.3s;
+    background-color: #f8f8f8;
+}
+
+.user-name, .control-bar {
+    text-align: left;
+    margin-block-start: 0em;
+    margin-block-end: 0em;
+    padding: 0.5em;
+}
+
+.user-name {
+    border-bottom: 1px solid #ba92911c;
+}
+
+.control-bar {
+    padding: 0.29em 1em;
+    background-color: #ba9291
+}
+
+.user-message {
+    display: inline-block;
+    border-radius: 0.5em;
+    padding: 0.25em 0.5em;
+    width: fit-content;
+    margin-block-start: 0;
+    margin-block-end: 0.25em;
+    clear: both;
+}
+
+.left {
+    margin-right: 100%;
+    background-color: #f8f8f8;
+}
+
+.right {
+    background-color: #BA9291;
+    margin-left: 100%;
+}
+
+.left.short {
+    margin-right: auto;
+    display: block;
+}
+
+.left.long {
+    float:left;
+    width: 75%;
+    overflow-wrap: break-word;
+}
+
+.right.short {
+    margin-left: auto;
+    display: block;
+}
+
+.right.long {
+    float: right;
+    width: 75%;
+    overflow-wrap: break-word;
+}
+
+.close-chat {
+    float: right;
+    outline: none;
+    border: none;
+    background: none;
+    color: rgb(56, 56, 56);
+}
+
+.close-chat:hover {
+    color: rgb(153, 153, 153);
+}
+
+.chat-input {
+    width: 70%;
+    border: 1px solid #BA9291;
+    outline-color: #BA9291;
+    background-color: #f3f3f3;
+    margin-left: 0.25em;
+    margin-bottom: 0.5em;
+}
+
+.chat-send {
+    width: 23%;
+    background-color: #BA9291;
+    outline: none;
+    border: none;
+    color: white;
+}
+
+.chat-send:active:hover{
+    outline: none;
+    border: none;
+}

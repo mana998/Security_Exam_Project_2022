@@ -1,0 +1,136 @@
+.account-page {
+    padding: 3% 10% 0% 10%;
+  
+}
+
+.page-title {
+    border-bottom: 1px solid black;
+    padding-bottom: 2%;
+    font-weight: bold;
+    color: #BA9291;
+}
+
+.page-subtitle {
+
+    padding-bottom: 2%;
+    font-weight: bold;
+    color: #BA9291;
+    cursor: pointer;
+}
+
+#submit-button {
+    background-color: #BA9291 !important;
+    border-color: #BA9291 !important;
+}
+
+.submit-ingredient-button {
+    background-color: #BA9291 !important;
+    border-color: #BA9291 !important;
+}
+
+#upload-button {
+    background-color: #BA9291 !important;
+    border-color: #BA9291 !important;
+    margin-top: 3%;
+}
+.account-recipe-item {
+    background-color: white;
+    height: 60vh;
+    padding: 3%;
+    margin-bottom: 3%;
+    box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+}
+
+.img-size {
+    height: 75%;
+    text-align: center;
+    background-size: cover;
+    min-height: 40vh;
+    background-position: center;
+
+}
+
+.image-name {
+    text-align: center;
+    color: black;
+    margin-top: 5%;
+
+}
+
+.image-icons-likes {
+    text-align: center;
+    position:absolute;
+    bottom: 0%;
+}
+
+.likes {
+    text-align: center;
+    color: #BA9291;
+    display: inline-block;
+    font-size: 125%;
+}
+
+
+.home-image {
+    max-height: 100%;
+    max-width: 100%;
+    position:relative;
+    box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+    text-align: center;
+
+}
+
+#favorite-recipes, #your-recipes {
+   
+    padding: 5%;
+    text-align: center;
+
+}
+
+.icon {
+    max-width: 10%;
+    max-height: 10%;
+    cursor: pointer;
+    margin-left: 5%;  
+}
+
+#spread-icon {
+    max-width: 7%;
+    max-height: 7%;
+    margin-left: 5%;
+    cursor: pointer; 
+}
+
+#add-icon {
+    max-width: 7%;
+    max-height: 7%;
+    margin-left: 5%;
+    cursor: pointer; 
+}
+
+#add-ingredient {
+    margin-left: 5%;
+    cursor: pointer;
+}
+
+#myRecipes {
+    padding-bottom: 2%;
+    font-weight: bold;
+    color: #BA9291;
+}
+
+.row-style-label {
+    margin-right: 0px !important;
+    margin-left: 0px !important;    
+}
+
+.row-style {
+    margin: 1% 0% 2% 0% !important;    
+}
+
+#new-ingredient-button {
+    background-color: #BA9291;
+    color: white;
+    position: absolute;
+    right: 3%; 
+}
