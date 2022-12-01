@@ -85,6 +85,7 @@ CREATE TABLE IF NOT EXISTS `cooking`.`recipe` (
   `user_id` INT NULL,
   `recipe_img` VARCHAR(100) NULL,
   `likes` INT NOT NULL DEFAULT(0),
+  `is_private` TINYINT(1) UNSIGNED NOT NULL DEFAULT 1,
   PRIMARY KEY (`recipe_id`),
   UNIQUE INDEX `recipe_id_UNIQUE` (`recipe_id` ASC) VISIBLE,
   INDEX `fk_recipe_user1_idx` (`user_id` ASC) VISIBLE,
@@ -211,7 +212,7 @@ INSERT INTO ingredient (ingredient_name, measurement_id) VALUES
 ("scallions",2),
 ("salt",4);
 
-INSERT INTO recipe (recipe_name, recipe_desc, user_id, recipe_img) VALUES
+INSERT INTO recipe (recipe_name, recipe_desc, user_id, recipe_img, is_private) VALUES
 ("Courgette Carbonara", "
     Put a large pan of salted water on to boil.
     Halve and then quarter any larger courgettes lengthways. Cut out and discard any fluffy middle bits, and slice the courgettes at an angle into pieces roughly the same size and shape as the penne. Smaller courgettes can simply be sliced finely.
@@ -222,7 +223,7 @@ INSERT INTO recipe (recipe_name, recipe_desc, user_id, recipe_img) VALUES
     It’s very important to get this next bit right or your carbonara could end up ruined. You need to work quickly. When the pasta is cooked, drain it, reserving a little of the cooking water. Immediately, toss the pasta in the pan with the courgettes, bacon and lovely flavours, then remove from the heat and add a ladleful of the reserved cooking water and your creamy sauce. Stir together quickly. (No more cooking now, otherwise you’ll scramble the eggs)
     Get everyone around the table, ready to eat straight away. While you’re tossing the pasta and sauce, grate in the rest of the Parmesan and add a little more of the cooking water if needed, to give you a silky and shiny sauce. Taste quickly for seasoning.
     If you’ve managed to get any courgette flowers, tear them over the top, then serve and eat immediately, as the sauce can become thick and stodgy if left too long.
-", 1, "courgette_carbonara"),
+", 1, "courgette_carbonara", 0),
 ("Souffle omelette with vanilla apricots", "
 
     Halve the apricots, then place in a saucepan with the honey and 2 tablespoons of water.
@@ -235,27 +236,27 @@ INSERT INTO recipe (recipe_name, recipe_desc, user_id, recipe_img) VALUES
     Run a spatula under the omelette to loosen it, then make an indentation across the middle. Spoon over the apricots, then gently fold over one half of the omelette.
     Tip onto a plate, dust with icing sugar, chop and scatter over the hazelnuts and serve immediately.
 
-", 5,"souffle_omelette_with_vanilla_apricots"),
+", 5,"souffle_omelette_with_vanilla_apricots", 1),
 ("Spicy feta & pepper dip", "
 
     In a food processor combine the feta, red peppers and oil.
     Season with black pepper and blend until smooth.
     Transfer to a bowl, then serve.
 
-", 5,"spicy_feta_&_pepper_dip"),
+", 5,"spicy_feta_&_pepper_dip", 0),
 ("Fruit Salad", "
 	Slice strawberries and pineapple
     Add blueberries, raspberries and walnuts.
     Squeeze fresh lemon juice and mix.
 
-", 5,"fruit_salad"),
+", 5,"fruit_salad", 0),
 ("Vegetarian risotto with parmesan", "
 
 In 10-inch nonstick pan, heat butter and oil over medium-high heat until butter is melted. Add onion and garlic; cook 3 to 4 minutes, stirring frequently, until onion is tender.
 Stir in rice. Cook, stirring occasionally, until rice is tender.
 Meanwhile, cook frozen vegetables as directed on bag. Stir vegetables, Parmesan cheese, parsley and pepper into rice .
 
-", 4,"vegetarian_risotto_with_parmesan"),
+", 4,"vegetarian_risotto_with_parmesan", 1),
 ("Ramen with bacon and egg", "
 
 	Boil 2 cups of water in a pot.
@@ -264,57 +265,7 @@ Meanwhile, cook frozen vegetables as directed on bag. Stir vegetables, Parmesan 
     Fry an egg. Cook bacon and slice scallions.
 	Add fried egg, bacon, scallions and season with salt and pepper.
 
-", 3,"ramen_with_bacon_and_egg");/*,
-("Spicy feta & pepper dip", "
-
-    In a food processor combine the feta, red peppers and oil.
-    Season with black pepper and blend until smooth.
-    Transfer to a bowl, then serve.
-
-", 4,"spicy_feta_&_pepper_dip"),
-("Spicy feta & pepper dip", "
-
-    In a food processor combine the feta, red peppers and oil.
-    Season with black pepper and blend until smooth.
-    Transfer to a bowl, then serve.
-
-", 4,"spicy_feta_&_pepper_dip"),
-("Spicy feta & pepper dip", "
-
-    In a food processor combine the feta, red peppers and oil.
-    Season with black pepper and blend until smooth.
-    Transfer to a bowl, then serve.
-
-", 3,"spicy_feta_&_pepper_dip"),
-("Spicy feta & pepper dip", "
-
-    In a food processor combine the feta, red peppers and oil.
-    Season with black pepper and blend until smooth.
-    Transfer to a bowl, then serve.
-
-", 5,"spicy_feta_&_pepper_dip"),
-("Spicy feta & pepper dip", "
-
-    In a food processor combine the feta, red peppers and oil.
-    Season with black pepper and blend until smooth.
-    Transfer to a bowl, then serve.
-
-", 6,"spicy_feta_&_pepper_dip"),
-("Spicy feta & pepper dip", "
-
-    In a food processor combine the feta, red peppers and oil.
-    Season with black pepper and blend until smooth.
-    Transfer to a bowl, then serve.
-
-", 7,"spicy_feta_&_pepper_dip"),
-("Spicy feta & pepper dip", "
-
-    In a food processor combine the feta, red peppers and oil.
-    Season with black pepper and blend until smooth.
-    Transfer to a bowl, then serve.
-
-", 5,"spicy_feta_&_pepper_dip")*/;
-
+", 3,"ramen_with_bacon_and_egg", 0);
 
 INSERT INTO ingredient_has_recipe (ingredient_id, recipe_id, amount) VALUES 
 (1,3,240),
@@ -365,8 +316,3 @@ INSERT INTO ingredient_has_recipe (ingredient_id, recipe_id, amount) VALUES
 -- UPDATE recipe SET recipe_img = "spicy_feta_&_pepper_dip" WHERE recipe_id = 3;
 -- UPDATE recipe SET recipe_img = "courgette_carbonara" WHERE recipe_id = 1;
 -- UPDATE recipe SET recipe_img = "souffle_omelette_with_vanilla_apricots" WHERE recipe_id = 2;
-
-
-INSERT INTO favorite VALUES (3,2);
-DELETE FROM favorite WHERE recipe_id = 3;
-SELECT * FROM recipe;
