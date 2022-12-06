@@ -35,7 +35,7 @@ router.get("/api/recipes", (req, res) => {
     let direction = req.query.direction || "desc";
 
     //needs to be in there as else it is putting it into quotes
-    let query = `SELECT recipe_id, recipe_name, recipe_img, likes FROM recipe ORDER BY ${filter} ${direction} LIMIT ? OFFSET ?;`;
+    let query = `SELECT recipe_id, recipe_name, recipe_img, likes, is_private FROM recipe WHERE is_private = 0 ORDER BY ${filter} ${direction} LIMIT ? OFFSET ?;`;
     values = [Number(size), Number((page - 1) * size)];
     db.query(query, values, (error, result, fields) => {
         if (result && result.length) {
@@ -63,11 +63,11 @@ router.get("/api/recipes/user/:user_id", (req, res) => {
     let values= "";
 
     if (filter == "") {
-        query = 'SELECT recipe_id, recipe_name,recipe.recipe_desc, recipe_img, recipe.likes FROM recipe WHERE recipe.user_id = ? ;';
+        query = 'SELECT recipe_id, recipe_name,recipe.recipe_desc, recipe_img, recipe.likes, recipe.is_private FROM recipe WHERE recipe.user_id = ? ;';
         values = [user_id];
     } else if (filter == "favorite") {
-        query = 'SELECT recipe.recipe_id, recipe.recipe_name,recipe.recipe_desc, recipe.recipe_img, recipe.likes FROM recipe INNER JOIN favorite ON recipe.recipe_id = favorite.recipe_id WHERE favorite.user_id = ?;';
-        values = [user_id];
+        query = 'SELECT recipe.recipe_id, recipe.recipe_name,recipe.recipe_desc, recipe.recipe_img, recipe.likes, recipe.is_private FROM recipe INNER JOIN favorite ON recipe.recipe_id = favorite.recipe_id WHERE favorite.user_id = ? AND (recipe.is_private=0 OR recipe.user_id = ?);';
+        values = [user_id, user_id];
     } else {
         res.status(200).send({
             message: "No recipes found"
@@ -80,7 +80,7 @@ router.get("/api/recipes/user/:user_id", (req, res) => {
             //write recipe to object
             const recipes = [];
             for (const recipe of result) {
-                recipes.push(new Recipe(recipe.recipe_id, recipe.recipe_name,recipe.recipe_desc, '', recipe.recipe_img, recipe.likes));
+                recipes.push(new Recipe(recipe.recipe_id, recipe.recipe_name,recipe.recipe_desc, '', recipe.recipe_img, recipe.likes, recipe.is_private));
             }
             res.status(200).send({recipes});
         } else {
@@ -99,8 +99,8 @@ router.get("/api/recipes/user/:user_id/favorite/:recipe_id", (req, res) => {
     let query = "";
     let values= "";
 
-    query = 'SELECT recipe_id, user_id FROM favorite WHERE user_id = ? AND recipe_id = ?;';
-    values = [user_id, recipe_id];
+    query = 'SELECT recipe_id, user_id, is_private FROM favorite WHERE user_id = ? AND recipe_id = ? AND (is_private=0 OR user_id = ?);';
+    values = [user_id, recipe_id, user_id];
 
     db.query(query, values, (error, result, fields) => {
         if (result && result.length) {
@@ -116,6 +116,7 @@ router.get("/api/recipes/user/:user_id/favorite/:recipe_id", (req, res) => {
     });
 })
 
+///delete?
 router.get("/api/recipes/ingredients", (req, res) => {
     let values = [];
     /*`SELECT recipe.recipe_id, recipe_name, recipe_img, likes, ingredient_has_recipe.ingredient_id  FROM recipe 
@@ -164,11 +165,11 @@ router.get("/api/recipes/ingredients", (req, res) => {
 })
 
 
-
+//no user id so need to check where is this used
 router.get("/api/recipes/:recipe_name", (req, res) => {
 
     //get recipe from db
-    db.query('SELECT * FROM recipe INNER JOIN ingredient_has_recipe ON recipe.recipe_id = ingredient_has_recipe.recipe_id INNER JOIN ingredient ON ingredient_has_recipe.ingredient_id = ingredient.ingredient_id INNER JOIN measurement ON ingredient.measurement_id = measurement.measurement_id WHERE recipe.recipe_name=?;',[req.params.recipe_name],
+    db.query('SELECT * FROM recipe INNER JOIN ingredient_has_recipe ON recipe.recipe_id = ingredient_has_recipe.recipe_id INNER JOIN ingredient ON ingredient_has_recipe.ingredient_id = ingredient.ingredient_id INNER JOIN measurement ON ingredient.measurement_id = measurement.measurement_id WHERE recipe.recipe_name=? AND recipe.is_private = 0;',[req.params.recipe_name],
     (error, result, fields) => {
         if (result.length !== 0){
         
@@ -177,7 +178,7 @@ router.get("/api/recipes/:recipe_name", (req, res) => {
             for (const ingredient of result){
                 ingredients.push(new Ingredient(ingredient.ingredient_id, ingredient.ingredient_name, ingredient.measurement_name, ingredient.amount));
             };
-            const recipe = new Recipe(result[0].recipe_id, result[0].recipe_name, result[0].recipe_desc, result[0].user_id, result[0].recipe_img, result[0].likes );
+            const recipe = new Recipe(result[0].recipe_id, result[0].recipe_name, result[0].recipe_desc, result[0].user_id, result[0].recipe_img, result[0].likes, result[0].is_private );
             res.status(200).send({
                 recipe: recipe,
                 ingredients: ingredients
@@ -206,10 +207,9 @@ router.post("/api/recipes", (req, res) => {
                 return;               
             } 
         }
-
         //insert into recipe table
         const recipe_img = req.body.recipe_name.toLowerCase().split(" ").join("_");
-        db.query("INSERT INTO recipe (recipe_name, recipe_desc, user_id, recipe_img) VALUES (?, ?, ?, ?);",[req.body.recipe_name, req.body.recipe_description, req.body.user_id, recipe_img], (error, result, fields) => {
+        db.query("INSERT INTO recipe (recipe_name, recipe_desc, user_id, recipe_img, is_private) VALUES (?, ?, ?, ?, ?);",[req.body.recipe_name, req.body.recipe_description, req.body.user_id, recipe_img, req.body.privacy], (error, result, fields) => {
             if (error) {
                 throw error;
             } else {
@@ -297,7 +297,7 @@ router.put("/api/recipes", (req, res) => {
         });
 
         //update  recipe table
-        db.query("UPDATE recipe SET recipe_name = ?, recipe_desc = ?, recipe_img = ? WHERE recipe.recipe_id = ?;", [req.body.recipe_name, req.body.recipe_description, recipe_img, req.body.recipe_id], (error, result, fields) => {  
+        db.query("UPDATE recipe SET recipe_name = ?, recipe_desc = ?, recipe_img = ?, is_private = ? WHERE recipe.recipe_id = ?;", [req.body.recipe_name, req.body.recipe_description, recipe_img, req.body.recipe_id, req.body.privacy], (error, result, fields) => {  
             if (error) {
                 throw error;
             } else {
