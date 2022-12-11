@@ -2,6 +2,7 @@ const router = require("express").Router();
 const db = require("./../database/connection").connection; 
 const bcrypt = require("bcrypt");
 const Comment = require("./../models/Comment").Comment;
+const sanitize = require("./sanitize.js");
 
 router.get("/api/comments/:recipe_id", (req, res) => {
     
@@ -10,7 +11,8 @@ router.get("/api/comments/:recipe_id", (req, res) => {
     db.query(query, [id], (error, result, fields) => {
         if (result && result.length) {
             const comments = [];
-            for (const comment of result) {
+            for (let comment of result) {
+                comment = sanitize(comment);
                 comments.push(new Comment(comment.comment_id, comment.user_id, comment.username, comment.comment, comment.timestamp));
             }
             res.send({comments});

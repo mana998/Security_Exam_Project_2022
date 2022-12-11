@@ -1,7 +1,10 @@
 async function renderRecipe() {
     const user_id = await getLoginSession();
     let fetchString = `/api${window.location.pathname}`;
-    let response = await fetch(fetchString);
+    let response = await fetch(fetchString, {
+        method: 'post',
+        body: user_id
+    });
     let result = await response.json();
     $(".flex-container").empty();
     if (result.message) {

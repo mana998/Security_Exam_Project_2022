@@ -41,12 +41,21 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true}));
 app.use(express.static(__dirname + '/public'));
 
+const sanitize = require("./routes/sanitize.js");
+app.use(sanitize)
+//app.use('/api', sanitize)
 const recipesRouter = require("./routes/recipes.js");
 const usersRouter = require("./routes/users.js");
 const sessionRouter = require("./routes/session.js");
 const ingredientsRouter = require("./routes/ingredients.js");
 const measurementsRouter = require("./routes/measurements.js");
 const commentsRouter = require("./routes/comments.js");
+//recipesRouter.router.use('/api', sanitize)
+//usersRouter.router.use('/api', sanitize)
+//sessionRouter.router.use('/api', sanitize)
+//ingredientsRouter.router.use('/api', sanitize)
+//measurementsRouter.router.use('/api', sanitize)
+//commentsRouter.router.use('/api', sanitize)
 
 app.use(recipesRouter.router);
 app.use(usersRouter.router);
@@ -55,6 +64,7 @@ app.use(ingredientsRouter.router);
 app.use(measurementsRouter.router);
 app.use(commentsRouter.router);
 
+//app.use('/api', sanitize)
 
 const header = fs.readFileSync(__dirname + '/public/header/header.html', 'utf8');
 const recipes = fs.readFileSync(__dirname + '/public/recipes/recipes.html', 'utf8');

@@ -27,7 +27,11 @@ function generateRecipe(recipe, container) {
 
 //take ingredients from db and add them to the form
 async function updateModal(recipe_name) {
-    const response = await fetch(`/api/recipes/${recipe_name}`);
+    const user_id = await getLoginSession();
+    const response = await fetch(`/api/recipes/${recipe_name}`, {
+        method: 'post',
+        body: user_id
+    });
     const result = await response.json();
     $("#ingredientsArray").empty();
     $('#img-response').text('');
