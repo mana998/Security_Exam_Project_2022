@@ -97,6 +97,25 @@ CREATE TABLE IF NOT EXISTS `cooking`.`recipe` (
     ON UPDATE NO ACTION)
 ENGINE = InnoDB;
 
+CREATE TABLE IF NOT EXISTS `cooking`.`comment` (
+  `comment_id` INT NOT NULL AUTO_INCREMENT,
+  `recipe_id` INT NOT NULL,
+  `user_id` INT NOT NULL,
+  `comment` VARCHAR(255) NOT NULL,
+  `timestamp` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`comment_id`),
+  UNIQUE INDEX `comment_id` (`comment_id` ASC) VISIBLE,
+  INDEX `fk_comment_recipe1` (`recipe_id` ASC) VISIBLE,
+  INDEX `fk_comment_user1` (`user_id` ASC) VISIBLE,
+  CONSTRAINT `fk_comment_recipe1`
+    FOREIGN KEY (`recipe_id`)
+    REFERENCES `cooking`.`recipe` (`recipe_id`),
+  CONSTRAINT `fk_comment_user1`
+    FOREIGN KEY (`user_id`)
+    REFERENCES `cooking`.`user` (`user_id`))
+ENGINE = InnoDB
+AUTO_INCREMENT = 23
+DEFAULT CHARACTER SET = utf8mb3;
 
 -- -----------------------------------------------------
 -- Table `cooking`.`ingredient_has_recipe`
