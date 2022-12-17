@@ -163,6 +163,7 @@ async function getLoginSession() {
     let fetchString = `/getsession`;
     const response = await fetch(fetchString);
     const result = await response.json();
+    console.log('result', result);
     if (result.id) {
         return result.id;
     } else {
