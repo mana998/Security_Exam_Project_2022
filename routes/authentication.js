@@ -13,33 +13,29 @@ router.get('/secure-api/refresh', (req, res) => {
   const refreshToken = cookies.session;
 
   try {
-    pool.getConnection((err, db) => {
-      const query = 'SELECT * FROM users WHERE refresh_token = ?';
-      db.query(query, [refreshToken], (error, result, fields) => {
-        if (result[0]) {
-          jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET, (err, payload) => {
-            if (err || result[0].email !== payload.email) return res.sendStatus(403);
+    const query = 'SELECT * FROM user WHERE refresh_token = ?;';
+    db.query(query, [refreshToken], (error, result, fields) => {
+      if (result[0]) {
+        jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET, (err, payload) => {
+          if (err || result[0].user_id !== payload.user_id) return res.sendStatus(403);
 
-            const user = {
-              id: payload.id,
-              email: payload.email,
-              firstName: payload.firstName,
-              lastName: payload.lastName,
-              role: payload.role
-            };
+          const user = {
+            user_id: result[0].user_id,
+            username: result[0].username
+          };
 
-            const accessToken = jwt.sign(user, process.env.JWT_SECRET, {
-              expiresIn: '30s'
-            });
-
-            res.status(202).json({ claims: user, accessToken });
+          const accessToken = jwt.sign(user, process.env.JWT_SECRET, {
+            expiresIn: '30s'
           });
-        } else {
-          return res.sendStatus(403);
-        }
-      });
-      db.release();
+
+          res.status(202).json({ claims: user, accessToken });
+        });
+      } else {
+        return res.sendStatus(403);
+      }
     });
+    // db.release();
+  
   } catch (e) {
     return res.sendStatus(403);
   }
@@ -73,27 +69,30 @@ router.post('/secure-api/users/register', (req, res) => {
               message: "User with the same username already exists. Try to login."
             });
           } else if (result.length == 0) {
-            query = 'INSERT INTO user (username, password, active, role_id) VALUES (?, ?, ?, ?);';
-            db.query(query,[username, hash, 0, 1], (error, result, fields) => {
+            const accessToken = jwt.sign(
+              { username },
+              process.env.JWT_SECRET,
+              { expiresIn: '30s' } 
+            );
+            const refreshToken = jwt.sign(
+              { username },
+              process.env.REFRESH_TOKEN_SECRET,
+              { expiresIn: '1d' }
+            );
+
+            query = 'INSERT INTO user (username, password, active, role_id, refresh_token) VALUES (?, ?, ?, ?, ?);';
+            db.query(query,[username, hash, 0, 1, refreshToken], (error, result, fields) => {
               // console.log('res', result);
               if (result.affectedRows === 1) {
-                const accessToken = jwt.sign(
-                  { username },
-                  process.env.JWT_SECRET,
-                  { expiresIn: '30s' } 
-                );
-                const refreshToken = jwt.sign(
-                  { username },
-                  process.env.REFRESH_TOKEN_SECRET,
-                  { expiresIn: '1d' }
-                );
+                
     
                 res.cookie('session', refreshToken, {
                   httpOnly: true,
                   maxAge: 24 * 60 * 60 * 1000 // 1 day
                 });
                 res.status(202).send({
-                  message: `User ${username} is registered & logged in!`
+                  message: `User ${username} is registered & logged in!`,
+                  access_token: accessToken
                 });
               } else {
                 console.log('error query insert user data:', error);
@@ -128,59 +127,63 @@ router.post('/secure-api/users/register', (req, res) => {
 });
 
 router.post('/secure-api/users/login', (req, res) => {
-  const { email, password } = req.body;
-  checkEmail(email);
-  if (!email || !password) {
-    return res.status(422).send({ message: 'Must provide email and password' });
+  const { username, password } = req.body;
+  // checkEmail(email);
+  if (!username || !password) {
+    return res.status(422).send({ message: 'Must provide username and password' });
   }
   try {
-    pool.getConnection((err, db) => {
-      const query = 'SELECT * FROM users WHERE email = ?';
-      db.query(query, [email], (error, result, fields) => {
-        if (result && result.length) {
-          bcrypt.compare(password, result[0].password, (error, match) => {
-            if (match) {
-              const user = {
-                id: result[0].user_id,
-                email: result[0].email,
-                firstName: result[0].first_name,
-                lastName: result[0].last_name,
-                role: result[0].user_role
-              };
+    // console.log(username, password);
+    const query = 'SELECT * FROM user WHERE username = ?;';
+    db.query(query, [username], (error, result, fields) => {
+      // console.log(result);
+      if (result && result.length === 1) {
+        // console.log(result);
+        bcrypt.compare(password, result[0].password, (error, match) => {
+          if (match) {
+            const user = {
+              user_id: result[0].user_id,
+              username: result[0].username
+            };
 
-              const accessToken = jwt.sign(user, process.env.JWT_SECRET, {
-                expiresIn: '1d'
-              });
+            const accessToken = jwt.sign(user, process.env.JWT_SECRET, {
+              expiresIn: '1d'
+            });
 
-              const refreshToken = jwt.sign(user, process.env.REFRESH_TOKEN_SECRET, {
-                expiresIn: '1d'
-              });
+            const refreshToken = jwt.sign(user, process.env.REFRESH_TOKEN_SECRET, {
+              expiresIn: '1d'
+            });
 
-              // store refresh token with the user
-              const query = 'UPDATE users SET refresh_token = ? WHERE email = ?';
-              db.query(query, [refreshToken, email], (error, result, fields) => {
-                if (result && result.affectedRows) {
-                  res.cookie('session', refreshToken, {
-                    httpOnly: true,
-                    sameSite: 'none',
-                    secure: true,
-                    maxAge: 24 * 60 * 60 * 1000 // 1 day
-                  });
-                  res.status(202).json({ claims: user, accessToken });
-                } else {
-                  res.status(500).send({ message: 'Something went wrong' });
-                }
-              });
-            } else {
-              return res.status(401).send({ message: 'Invalid password or email' });
-            }
-          });
-        } else {
-          return res.status(401).send({ message: 'Invalid password or email' });
-        }
-      });
-      db.release();
+            // store refresh token with the user
+            // console.log('user', user.user_id);
+            // console.log('refreshToken', refreshToken);
+            // console.log(typeof refreshToken);
+            // console.log(String(refreshToken));
+            const query = `UPDATE user SET refresh_token = ? WHERE user_id = ?;`;
+            db.query(query, [refreshToken, user.user_id], (error, result, fields) => {
+              // console.log(error);
+              if (result && result.affectedRows) {
+                // console.log(result);
+                res.cookie('session', refreshToken, {
+                  httpOnly: true,
+                  sameSite: 'none',
+                  secure: true,
+                  maxAge: 24 * 60 * 60 * 1000 // 1 day
+                });
+                res.status(202).json({ claims: user, accessToken });
+              } else {
+                res.status(500).send({ message: 'Something went wrong' });
+              }
+            });
+          } else {
+            return res.status(401).send({ message: 'Invalid password or email' });
+          }
+        });
+      } else {
+        return res.status(401).send({ message: 'Invalid password or email' });
+      }
     });
+    // db.release();
   } catch (e) {
     return res.status(401).send({ message: 'Invalid password or email' });
   }
@@ -188,34 +191,35 @@ router.post('/secure-api/users/login', (req, res) => {
 
 router.get('/secure-api/users/logout', (req, res) => {
   const { cookies } = req;
+  console.log(cookies);
   if (!cookies?.session) return res.sendStatus(204);
   const refreshToken = cookies.session;
 
   try {
-    pool.getConnection((err, db) => {
-      // check if refresh token is inside gb
-      const query = 'SELECT * FROM users WHERE refresh_token = ?';
-      db.query(query, [refreshToken], (error, result, fields) => {
-        if (!result[0]) {
-          res.clearCookie('session', { httpOnly: true, sameSite: 'none', secure: true });
-          return res.sendStatus(204);
-        }
+    // check if refresh token is inside gb
+    const query = 'SELECT * FROM user WHERE refresh_token = ?';
+    db.query(query, [refreshToken], (error, result, fields) => {
+      console.log(result);
+      if (!result[0]) {
+        res.clearCookie('session', { httpOnly: true, sameSite: 'none', secure: true });
+        return res.sendStatus(204);
+      }
 
-        // delete refresh token from db
-        const query = 'UPDATE users SET refresh_token = ? WHERE email = ?';
-        db.query(query, ['', result[0].email], (error, result, fields) => {
-          if (result && result.affectedRows) {
-            res.clearCookie('session', {
-              httpOnly: true,
-              sameSite: 'none',
-              secure: true
-            });
-            res.sendStatus(200);
-          }
-        });
+      // delete refresh token from db
+      const query = 'UPDATE user SET refresh_token = ? WHERE user_id = ?';
+      db.query(query, ['', result[0].user_id], (error, result, fields) => {
+        if (result && result.affectedRows) {
+          res.clearCookie('session', {
+            httpOnly: true,
+            sameSite: 'none',
+            secure: true
+          });
+          res.sendStatus(200);
+        }
       });
-      db.release();
     });
+    // db.release();
+    
   } catch (e) {
     return res.sendStatus(403);
   }
@@ -239,26 +243,26 @@ router.get('/secure-api/users/logout', (req, res) => {
 //   throw new Error('Invalid format');
 // };
 
-const checkEmail = (email) => {
-  const mailFormat = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
-  if (email.match(mailFormat)) {
-    return true;
-  }
-  throw new Error('Invalid format');
-};
+// const checkEmail = (email) => {
+//   const mailFormat = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
+//   if (email.match(mailFormat)) {
+//     return true;
+//   }
+//   throw new Error('Invalid format');
+// };
 
-const checkNameAndSurname = (firstName, lastName) => {
-  const nameFormat = /^\s*([A-Za-z]{1,}([\.,] |[-']| ))+[A-Za-z]+\.?\s*$/; // english ones, for now
-  const fullName = `${firstName} ${lastName}`;
+// const checkNameAndSurname = (firstName, lastName) => {
+//   const nameFormat = /^\s*([A-Za-z]{1,}([\.,] |[-']| ))+[A-Za-z]+\.?\s*$/; // english ones, for now
+//   const fullName = `${firstName} ${lastName}`;
 
-  if (fullName.match(nameFormat)) {
-    if (fullName.length > 70) {
-      throw new Error('Expected length exceeded');
-    }
-    return true;
-  }
-  throw new Error('Invalid format');
-};
+//   if (fullName.match(nameFormat)) {
+//     if (fullName.length > 70) {
+//       throw new Error('Expected length exceeded');
+//     }
+//     return true;
+//   }
+//   throw new Error('Invalid format');
+// };
 
 module.exports = {
   // checkAge,
