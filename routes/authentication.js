@@ -32,6 +32,7 @@ router.get("/secure-api/refresh", (req, res) => {
             const user = {
               user_id: result[0].user_id,
               username: result[0].username,
+              role_id: result[0].role_id,
             };
 
             const accessToken = jwt.sign(user, process.env.JWT_SECRET, {
@@ -109,7 +110,11 @@ router.post("/secure-api/users/register", (req, res) => {
                     "auth",
                     JSON.stringify({
                       accessToken,
-                      claims: { username, user_id: result.insertId },
+                      claims: {
+                        username,
+                        user_id: result.insertId,
+                        role_id: 1, // always user
+                      },
                     }),
                     {
                       maxAge: 1 * 60 * 1000,
@@ -172,6 +177,7 @@ router.post("/secure-api/users/login", (req, res) => {
             const user = {
               user_id: result[0].user_id,
               username: result[0].username,
+              role_id: result[0].role_id,
             };
 
             const accessToken = jwt.sign(user, process.env.JWT_SECRET, {
