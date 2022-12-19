@@ -6,6 +6,8 @@ const multer = require("multer");
 const path = require("path");
 const replaceRegex = /[^A-Za-z0-9\.]/g;
 const sanitize = require("./sanitize.js");
+const { getConnection, disconnect } = require("../database/connection");
+const requireAuth = require("../middleware/requireAuthorization");
 
 //Code neccessary for uploading the images. multer, path def at the top of the page!
 const storage = multer.diskStorage({
@@ -36,6 +38,11 @@ const upload = multer({
 router.get("/api/recipes", (req, res) => {
   let page = req.query.page || 1;
   let size = req.query.size || 1000;
+
+  // const { claims } = JSON.parse(req.cookies.auth);
+
+  // console.log(claims);
+  let db = getConnection();
 
   //add filtering
   let filter = req.query.filter || "likes";
@@ -70,8 +77,11 @@ router.get("/api/recipes", (req, res) => {
   });
 });
 
-router.get("/api/recipes/user/:user_id", (req, res) => {
+router.get("/api/recipes/user/:user_id", requireAuth, (req, res) => {
   //add filtering
+  console.log(req.user);
+  let db = getConnection(req.user);
+
   let filter = req.query.filter;
   let user_id = req.params["user_id"];
   let query = "";
@@ -119,12 +129,14 @@ router.get("/api/recipes/user/:user_id", (req, res) => {
   });
 });
 
-router.get("/api/recipes/user/:user_id/favorite/:recipe_id", (req, res) => {
+router.get("/api/recipes/user/:user_id/favorite/:recipe_id", requireAuth, (req, res) => {
   //add filtering
   let user_id = req.params["user_id"];
   let recipe_id = req.params["recipe_id"];
   let query = "";
   let values = "";
+
+  let db = getConnection(req.user);
 
   query =
     "SELECT favorite.recipe_id, favorite.user_id, is_private FROM favorite JOIN recipe ON favorite.recipe_id = recipe.recipe_id WHERE favorite.user_id = ? AND favorite.recipe_id = ? AND (is_private=0 OR favorite.user_id = ?);";
@@ -144,7 +156,7 @@ router.get("/api/recipes/user/:user_id/favorite/:recipe_id", (req, res) => {
 });
 
 ///delete?
-router.get("/api/recipes/ingredients", (req, res) => {
+router.get("/api/recipes/ingredients", requireAuth, (req, res) => {
   let values = [];
   /*`SELECT recipe.recipe_id, recipe_name, recipe_img, likes, ingredient_has_recipe.ingredient_id  FROM recipe 
 	INNER JOIN ingredient_has_recipe 

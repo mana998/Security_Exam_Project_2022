@@ -204,13 +204,12 @@ router.post("/secure-api/users/login", (req, res) => {
 
             const roleQuery = "SELECT * from role WHERE role_id = ?";
 
-            
+            // console.log('db', db);
             db.query(
               roleQuery,
               [result[0].role_id],
               (error, result, fields) => {
                 let role = {};
-
                 if (result) {
                   role["role_id"] = result[0].role_id;
                   role["role"] = result[0].role;
@@ -232,7 +231,6 @@ router.post("/secure-api/users/login", (req, res) => {
                   });
 
                   const refreshQuery = `UPDATE user SET refresh_token = ? WHERE user_id = ?;`;
-                  db = getConnection('user');
                   db.query(
                     refreshQuery,
                     [refreshToken, user.user_id],
@@ -264,6 +262,8 @@ router.post("/secure-api/users/login", (req, res) => {
                 }
               }
             );
+            disconnect(db);
+            db = getConnection('user'); 
           } else {
             return res
               .status(401)

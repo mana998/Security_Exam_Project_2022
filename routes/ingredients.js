@@ -5,6 +5,7 @@ const multer = require('multer');
 const sanitize = require("./sanitize.js");
 
 router.get("/api/ingredients", (req, res) => {
+    let db = getConnection();
     
     //get ingredients from db
     db.query('SELECT * FROM ingredient INNER JOIN measurement ON ingredient.measurement_id = measurement.measurement_id ORDER BY ingredient_name ASC;', (error, result, fields) => {
