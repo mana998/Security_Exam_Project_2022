@@ -127,7 +127,7 @@ router.get("/api/recipes/user/:user_id/favorite/:recipe_id", (req, res) => {
   let values = "";
 
   query =
-    "SELECT recipe_id, user_id, is_private FROM favorite WHERE user_id = ? AND recipe_id = ? AND (is_private=0 OR user_id = ?);";
+    "SELECT favorite.recipe_id, favorite.user_id, is_private FROM favorite JOIN recipe ON favorite.recipe_id = recipe.recipe_id WHERE favorite.user_id = ? AND favorite.recipe_id = ? AND (is_private=0 OR favorite.user_id = ?);";
   values = [user_id, recipe_id, user_id];
 
   db.query(query, values, (error, result, fields) => {
@@ -323,7 +323,7 @@ router.post("/api/recipes", (req, res) => {
 });
 
 //adding to favorites
-router.post("/api/recipes/favorites", (req, res) => {
+router.post("/api/recipes/favorites/modify", (req, res) => {
   const recipe_id = req.body.recipe_id;
   const user_id = req.body.user_id;
   db.query(
@@ -471,7 +471,7 @@ router.put("/api/recipes", (req, res) => {
 });
 
 //delete from favorite
-router.delete("/api/recipes/favorites", (req, res) => {
+router.delete("/api/recipes/favorites/modify", (req, res) => {
   const recipe_id = req.body.recipe_id;
   const user_id = req.body.user_id;
   db.query(

@@ -29,8 +29,8 @@ function sanitizeObject(object) {
         //console.log("key", key)
         //console.log('typeof', typeof object[key])
         if (typeof object[key] !== 'object') {
-            console.log("key", key, "object", object[key])
-            console.log(`before query ${object[key]}`)
+            //console.log("key", key, "object", object[key])
+            //console.log(`before query ${object[key]}`)
             if (typeof object[key] !== 'number') { //dont sanitize number
                 object[key] = sanitizeHtml(object[key], sanitizeOptions)
             }
