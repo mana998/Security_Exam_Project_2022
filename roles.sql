@@ -2,7 +2,7 @@ DROP ROLE IF EXISTS 'admin_role';
 DROP ROLE IF EXISTS 'user_role';
 DROP ROLE IF EXISTS 'guest_role';
 DROP USER IF EXISTS 'admin';
-DROP USER IF EXISTS 'uset';
+DROP USER IF EXISTS 'user';
 DROP USER IF EXISTS 'guest';
 
 CREATE ROLE 'admin_role', 'user_role', 'guest_role';

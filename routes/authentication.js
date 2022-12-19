@@ -93,7 +93,7 @@ router.post("/secure-api/users/register", (req, res) => {
             );
 
             query =
-              "INSERT INTO user (username, password, active, role_id, refresh_token) VALUES (?, ?, ?, ?, ?);";
+              "INSERT INTO user (username, password, role_id, refresh_token) VALUES (?, ?, ?, ?);";
             db.query(
               query,
               [username, hash, 0, 1, refreshToken],

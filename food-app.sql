@@ -11,7 +11,7 @@ SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,N
 -- -----------------------------------------------------
 -- Schema cooking
 -- -----------------------------------------------------
-DROP SCHEMA `cooking`;
+DROP SCHEMA IF EXISTS `cooking`;
 CREATE SCHEMA IF NOT EXISTS `cooking` DEFAULT CHARACTER SET utf8 ;
 USE `cooking` ;
 
@@ -61,7 +61,6 @@ CREATE TABLE IF NOT EXISTS `cooking`.`user` (
   `user_id` INT NOT NULL AUTO_INCREMENT,
   `username` VARCHAR(45) NOT NULL,
   `password` VARCHAR(128) NOT NULL,
-  `active` TINYINT(1) UNSIGNED NOT NULL DEFAULT 0,
   `role_id` INT NOT NULL,
   PRIMARY KEY (`user_id`),
   UNIQUE INDEX `user_id_UNIQUE` (`user_id` ASC) VISIBLE,
@@ -181,15 +180,15 @@ INSERT INTO role (role_id, role) VALUES
 (0, "admin"),
 (1, "user");
 
-INSERT INTO user (username, password, active, role_id) VALUES 
-("dprzygocka", "$2b$15$Wp3v5v0B0fVQhdAQj7ztIuJE8s9j2Br.S.VV3MC7M2wIVHmz193/C", 0, 1),
-("mzimmer", "$2b$15$p.RGKhZezfLSswbcshvJpe5WGHY8r.8tb4/Wjm0emndPmJxMNqnaW", 0, 1),
-("bubbly_snowflake", "$2b$15$HUey/1SH5Tdgpzh4UR.TGeu.Fy.0AK7RDA.53gM0XDuFlcWuLhm26", 0, 0),
-("SteelTitan", "$2b$15$HzWS6O5cmMJE5m6zOu72TO/ghCdzyGU456X0ona.OZu1.SqDTjOiG", 0, 0),
-("Jamie Oliver", "$2b$15$i6NyzXk/6pSOm7qh3r7eguqg3eUCtxRT9zp.v9GYOFXZ8l1B5XSY2", 0, 0),
-("CrashTV", "$2b$15$avnx7us69VxRRq218UI8gurrK773oKQFxf7H6QRG8vniM9pSL5pPS", 0, 0),
-("fantastic.shoppingaddict", "$2b$15$SeFI7h1KUyQkmnfno2N.UebZGBd/4x.2gjguIAlTsuCb8Y1946Em6", 0, 0),
-("hello", "$2b$15$hOcjiOg6vOXyzWE7zO/eDe7DA14TatIHKOgbpP8nhBH7MYO6CmK9u", 0, 0);
+INSERT INTO user (username, password, role_id) VALUES 
+("dprzygocka", "$2b$15$Wp3v5v0B0fVQhdAQj7ztIuJE8s9j2Br.S.VV3MC7M2wIVHmz193/C", 1),
+("mzimmer", "$2b$15$p.RGKhZezfLSswbcshvJpe5WGHY8r.8tb4/Wjm0emndPmJxMNqnaW", 1),
+("bubbly_snowflake", "$2b$15$HUey/1SH5Tdgpzh4UR.TGeu.Fy.0AK7RDA.53gM0XDuFlcWuLhm26", 0),
+("SteelTitan", "$2b$15$HzWS6O5cmMJE5m6zOu72TO/ghCdzyGU456X0ona.OZu1.SqDTjOiG", 0),
+("Jamie Oliver", "$2b$15$i6NyzXk/6pSOm7qh3r7eguqg3eUCtxRT9zp.v9GYOFXZ8l1B5XSY2", 0),
+("CrashTV", "$2b$15$avnx7us69VxRRq218UI8gurrK773oKQFxf7H6QRG8vniM9pSL5pPS", 0),
+("fantastic.shoppingaddict", "$2b$15$SeFI7h1KUyQkmnfno2N.UebZGBd/4x.2gjguIAlTsuCb8Y1946Em6", 0),
+("hello", "$2b$15$hOcjiOg6vOXyzWE7zO/eDe7DA14TatIHKOgbpP8nhBH7MYO6CmK9u", 0);
 
 INSERT INTO measurement (measurement_name) VALUES ("kg"), ("g"), ("cup"), ("tsp"), ("tbs"),
 ("pt"), ("l"), ("ml"), ("°C"), ("°F"), ("pcs"), ("sl"), (" ");
