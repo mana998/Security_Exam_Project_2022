@@ -172,6 +172,7 @@ async function checkSession() {
     if (user?.accessToken && user?.claims) {
       userId = user.claims.user_id;
     } else {
+      console.log("REFRESH");
       userId = await refreshToken();
     }
 

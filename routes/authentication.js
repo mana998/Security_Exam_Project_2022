@@ -29,20 +29,44 @@ router.get("/secure-api/refresh", (req, res) => {
             if (err || result[0].user_id !== payload.user_id)
               return res.sendStatus(403);
 
-            const user = {
+            const roleQuery = "SELECT * from role WHERE role_id = ?";
+
+            let user = {
               user_id: result[0].user_id,
               username: result[0].username,
-              role_id: result[0].role_id,
             };
 
-            const accessToken = jwt.sign(user, process.env.JWT_SECRET, {
-              expiresIn: "30s",
-            });
+            db.query(
+              roleQuery,
+              [result[0].role_id],
+              (error, result, fields) => {
+                let role = {};
 
-            res.cookie("auth", JSON.stringify({ accessToken, claims: user }), {
-              maxAge: 1 * 60 * 1000,
-            });
-            res.status(202).json({ claims: user, accessToken });
+                if (result) {
+                  role["role_id"] = result[0].role_id;
+                  role["role"] = result[0].role;
+
+                  if (role?.role_id !== undefined && role?.role) {
+                    user = { ...user, ...role };
+                  }
+
+                  const accessToken = jwt.sign(user, process.env.JWT_SECRET, {
+                    expiresIn: "30s",
+                  });
+
+                  res.cookie(
+                    "auth",
+                    JSON.stringify({ accessToken, claims: user }),
+                    {
+                      maxAge: 1 * 60 * 1000,
+                    }
+                  );
+                  res.status(202).json({ claims: user, accessToken });
+                } else {
+                  res.status(500).message("Internal server error");
+                }
+              }
+            );
           }
         );
       } else {
@@ -58,18 +82,9 @@ router.get("/secure-api/refresh", (req, res) => {
 router.post("/secure-api/users/register", (req, res) => {
   const { username, password } = req.body;
   try {
-    // if (!userRole || (userRole !== 'TEACHER' && userRole !== 'STUDENT')) {
-    //   res.send({
-    //     message: 'Please choose the role: TEACHER or STUDENT.'
-    //   });
-    //   return;
-    // } if (userRole === 'STUDENT') {
-    //   // checkAge(dateOfBirth);
-    // }
     console.log(username, password);
 
     // checkusername(username);
-    // checkNameAndSurname(firstName, lastName);
     const saltRounds = 15;
     let query = null;
     bcrypt.hash(password, saltRounds, (error, hash) => {
@@ -113,6 +128,7 @@ router.post("/secure-api/users/register", (req, res) => {
                       claims: {
                         username,
                         user_id: result.insertId,
+                        role: "user",
                         role_id: 1, // always user
                       },
                     }),
@@ -123,7 +139,12 @@ router.post("/secure-api/users/register", (req, res) => {
 
                   res.status(202).json({
                     message: `User ${username} is registered & logged in!`,
-                    claims: { username, user_id: result.insertId },
+                    claims: {
+                      username,
+                      user_id: result.insertId,
+                      role: "user",
+                      role_id: 1,
+                    },
                     accessToken,
                   });
                 } else {
@@ -174,53 +195,71 @@ router.post("/secure-api/users/login", (req, res) => {
         // console.log(result);
         bcrypt.compare(password, result[0].password, (error, match) => {
           if (match) {
-            const user = {
+            let user = {
               user_id: result[0].user_id,
               username: result[0].username,
               role_id: result[0].role_id,
             };
 
-            const accessToken = jwt.sign(user, process.env.JWT_SECRET, {
-              expiresIn: "30s",
-            });
+            const roleQuery = "SELECT * from role WHERE role_id = ?";
 
-            const refreshToken = jwt.sign(
-              user,
-              process.env.REFRESH_TOKEN_SECRET,
-              {
-                expiresIn: "1d",
-              }
-            );
-
-            // store refresh token with the user
-            // console.log('user', user.user_id);
-            // console.log('refreshToken', refreshToken);
-            // console.log(typeof refreshToken);
-            // console.log(String(refreshToken));
-            const query = `UPDATE user SET refresh_token = ? WHERE user_id = ?;`;
             db.query(
-              query,
-              [refreshToken, user.user_id],
+              roleQuery,
+              [result[0].role_id],
               (error, result, fields) => {
-                // console.log(error);
-                if (result && result.affectedRows) {
-                  // console.log(result);
-                  res.cookie("session", refreshToken, {
-                    httpOnly: true,
-                    sameSite: "none",
-                    secure: true,
-                    maxAge: 24 * 60 * 60 * 1000, // 1 day
-                  });
-                  res.cookie(
-                    "auth",
-                    JSON.stringify({ accessToken, claims: user }),
+                let role = {};
+
+                if (result) {
+                  role["role_id"] = result[0].role_id;
+                  role["role"] = result[0].role;
+
+                  if (role?.role_id !== undefined && role?.role) {
+                    user = { ...user, ...role };
+                  }
+
+                  const refreshToken = jwt.sign(
+                    user,
+                    process.env.REFRESH_TOKEN_SECRET,
                     {
-                      maxAge: 1 * 60 * 1000,
+                      expiresIn: "1d",
                     }
                   );
+
+                  const accessToken = jwt.sign(user, process.env.JWT_SECRET, {
+                    expiresIn: "30s",
+                  });
+
+                  const refreshQuery = `UPDATE user SET refresh_token = ? WHERE user_id = ?;`;
+                  db.query(
+                    refreshQuery,
+                    [refreshToken, user.user_id],
+                    (error, result, fields) => {
+                      if (result && result.affectedRows) {
+                        res.cookie("session", refreshToken, {
+                          httpOnly: true,
+                          sameSite: "none",
+                          secure: true,
+                          maxAge: 24 * 60 * 60 * 1000, // 1 day
+                        });
+                        res.cookie(
+                          "auth",
+                          JSON.stringify({ accessToken, claims: user }),
+                          {
+                            maxAge: 1 * 60 * 1000,
+                          }
+                        );
+                        res.status(202).json({ claims: user, accessToken });
+                      } else {
+                        res
+                          .status(500)
+                          .send({ message: "Something went wrong" });
+                      }
+                    }
+                  );
+
                   res.status(202).json({ claims: user, accessToken });
                 } else {
-                  res.status(500).send({ message: "Something went wrong" });
+                  res.status(500).message("Internal server error");
                 }
               }
             );
