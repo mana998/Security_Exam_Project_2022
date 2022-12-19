@@ -6,25 +6,24 @@ const sanitize = require("./sanitize.js");
 const requireAuth = require("../middleware/requireAuthorization");
 
 router.get("/api/ingredients", (req, res) => {
-    let db = getConnection();
-    
-    //get ingredients from db
-    db.query('SELECT * FROM ingredient INNER JOIN measurement ON ingredient.measurement_id = measurement.measurement_id ORDER BY ingredient_name ASC;', (error, result, fields) => {
-        if (result.length !== 0) {
-            
-            //write recipe to object
-            const ingredients = [];
-            for (let ingredient of result){
-                ingredient = sanitize(ingredient);
-                ingredients.push(new Ingredient(ingredient.ingredient_id, ingredient.ingredient_name, ingredient.measurement_name));
-            };     
-            res.status(200).send({
-                ingredients: ingredients
-            });
-        } else {
-            res.status(200).send({
-                message: "There are no ingredients."
-            });
+  let db = getConnection();
+
+  //get ingredients from db
+  db.query(
+    "SELECT * FROM ingredient INNER JOIN measurement ON ingredient.measurement_id = measurement.measurement_id ORDER BY ingredient_name ASC;",
+    (error, result, fields) => {
+      if (result.length !== 0) {
+        //write recipe to object
+        const ingredients = [];
+        for (let ingredient of result) {
+          ingredient = sanitize(ingredient);
+          ingredients.push(
+            new Ingredient(
+              ingredient.ingredient_id,
+              ingredient.ingredient_name,
+              ingredient.measurement_name
+            )
+          );
         }
         res.status(200).send({
           ingredients: ingredients,
