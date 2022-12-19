@@ -286,7 +286,7 @@ async function addOrDeleteFromFavorite(recipe_id, heart_id, container) {
 
 //add favorite
 async function addFavorite(recipe_id, user_id, container) {
-    const response = await fetch(`/api/recipes/favorites`, {
+    const response = await fetch(`/api/recipes/favorites/modify`, {
         method: 'post',
         headers: {
             'Accept': 'application/json',
@@ -305,7 +305,7 @@ async function addFavorite(recipe_id, user_id, container) {
 
 //delete favorite
 async function deleteFavorite(recipe_id, user_id, container) {
-    const response = await fetch(`/api/recipes/favorites`, {
+    const response = await fetch(`/api/recipes/favorites/modify`, {
         method: 'delete',
         headers: {
             'Accept': 'application/json',
