@@ -1,8 +1,9 @@
 const router = require("express").Router();
-const db = require("./../database/connection").connection; 
+const db = require("./../database/connection").connection;
 const Ingredient = require("./../models/Ingredient").Ingredient;
-const multer = require('multer');
+const multer = require("multer");
 const sanitize = require("./sanitize.js");
+const requireAuth = require("../middleware/requireAuthorization");
 
 router.get("/api/ingredients", (req, res) => {
     let db = getConnection();
@@ -25,45 +26,57 @@ router.get("/api/ingredients", (req, res) => {
                 message: "There are no ingredients."
             });
         }
-    });  
-})
+        res.status(200).send({
+          ingredients: ingredients,
+        });
+      } else {
+        res.status(200).send({
+          message: "There are no ingredients.",
+        });
+      }
+    }
+  );
+});
 
 const parseMulter = multer();
 
-router.post('/api/ingredients', parseMulter.none(),(req,res) => {
-    let exists = 0;
-    db.query('SELECT * FROM ingredient;', (error, result, fields) => {
-        if (result.length != 0){
-            for (let ingredient of result){
-                if (ingredient.ingredient_name === req.body.ingredient_name){
-                    exists = 1;
-                    res.status(409).send({
-                        message: "Ingredient already exists."
-                    });
-                    break;
-                }    
-            } 
-            if (!exists) {
-                db.query("INSERT INTO ingredient (ingredient_name, measurement_id) VALUES (?,?);",[req.body.ingredient_name, req.body.measure_id], (error, result, fields) => {
-                    if (error) {
-                        throw error;
-                    } else {
-                        if (result.affectedRows === 0) {
-                            res.status(500).send({
-                                message: "Something went wrong. Try again."
-                            });
-                            return;
-                        } else {
-                            res.status(201).send( {message: "Ingredient added."})
-                        }
-                    } 
-                });
-            }
+router.post("/api/ingredients", requireAuth, parseMulter.none(), (req, res) => {
+  let exists = 0;
+  db.query("SELECT * FROM ingredient;", (error, result, fields) => {
+    if (result.length != 0) {
+      for (let ingredient of result) {
+        if (ingredient.ingredient_name === req.body.ingredient_name) {
+          exists = 1;
+          res.status(409).send({
+            message: "Ingredient already exists.",
+          });
+          break;
         }
-    }); 
-           
-})
+      }
+      if (!exists) {
+        db.query(
+          "INSERT INTO ingredient (ingredient_name, measurement_id) VALUES (?,?);",
+          [req.body.ingredient_name, req.body.measure_id],
+          (error, result, fields) => {
+            if (error) {
+              throw error;
+            } else {
+              if (result.affectedRows === 0) {
+                res.status(500).send({
+                  message: "Something went wrong. Try again.",
+                });
+                return;
+              } else {
+                res.status(201).send({ message: "Ingredient added." });
+              }
+            }
+          }
+        );
+      }
+    }
+  });
+});
 
 module.exports = {
-    router: router
-}
+  router: router,
+};

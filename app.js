@@ -72,12 +72,10 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.static(__dirname + "/public"));
 
 const sanitize = require("./routes/sanitize.js");
-app.use(sanitize)
+// app.use(sanitize)
 //app.use('/api', sanitize)
 // mount routes before csrf is appended to the app stack
 const recipesRouter = require("./routes/recipes.js");
-const usersRouter = require("./routes/users.js");
-const sessionRouter = require("./routes/session.js");
 const ingredientsRouter = require("./routes/ingredients.js");
 const measurementsRouter = require("./routes/measurements.js");
 const commentsRouter = require("./routes/comments.js");
@@ -99,13 +97,11 @@ app.use(authenticationRouter.router);
 
 // app.use(requireAuth); // VERY IMPORTANT WHERE IT'S PLACED // we can't rly use it like this in this case, we need more specific usages
 app.use(recipesRouter.router);
-app.use(usersRouter.router);
-app.use(sessionRouter.router);
 app.use(ingredientsRouter.router);
 app.use(measurementsRouter.router);
 app.use(commentsRouter.router);
 
-//app.use('/api', sanitize)
+// app.use("/api", sanitize);
 
 // Prerequisite for every http request (cookie setup to prevent CSRF)
 // app.all("*", (req, res, next) => {

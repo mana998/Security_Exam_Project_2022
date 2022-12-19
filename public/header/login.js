@@ -1,6 +1,10 @@
 async function login() {
   let username = document.getElementById("username");
   let password = document.getElementById("password");
+
+  const cookie = getCookie("XSRF-TOKEN");
+  console.log("XSRF", cookie);
+
   let fetchString = `secure-api/users/login`;
   const response = await fetch(fetchString, {
     method: "POST",
@@ -8,6 +12,7 @@ async function login() {
     headers: {
       Accept: "application/json",
       "Content-Type": "application/json",
+      "CSRF-Token": cookie,
     },
     body: JSON.stringify({
       username: username.value,

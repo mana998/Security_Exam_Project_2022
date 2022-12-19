@@ -21,7 +21,7 @@ const storage = multer.diskStorage({
       err.code = "filetype";
       return cb(err);
     } else {
-      req = sanitize(req);
+      //   req = sanitize(req);
       let recipe_image =
         req.body.recipe_name.toLowerCase().split(" ").join("_") + ".jpg";
       recipe_image = recipe_image.replaceAll(replaceRegex, "");
@@ -142,18 +142,19 @@ router.get("/api/recipes/user/:user_id/favorite/:recipe_id", requireAuth, (req, 
     "SELECT favorite.recipe_id, favorite.user_id, is_private FROM favorite JOIN recipe ON favorite.recipe_id = recipe.recipe_id WHERE favorite.user_id = ? AND favorite.recipe_id = ? AND (is_private=0 OR favorite.user_id = ?);";
   values = [user_id, recipe_id, user_id];
 
-  db.query(query, values, (error, result, fields) => {
-    if (result && result.length) {
-      res.status(200).send({
-        includes: true,
-      });
-    } else {
-      res.status(200).send({
-        message: "No recipes found",
-      });
-    }
-  });
-});
+    db.query(query, values, (error, result, fields) => {
+      if (result && result.length) {
+        res.status(200).send({
+          includes: true,
+        });
+      } else {
+        res.status(200).send({
+          message: "No recipes found",
+        });
+      }
+    });
+  }
+);
 
 ///delete?
 router.get("/api/recipes/ingredients", requireAuth, (req, res) => {
@@ -260,9 +261,9 @@ router.post("/api/recipes/:recipe_name", (req, res) => {
   );
 });
 
-router.post("/api/recipes", (req, res) => {
+router.post("/api/recipes", requireAuth, (req, res) => {
   upload(req, res, (err) => {
-    req = sanitize(req, res);
+    // req = sanitize(req, res);
     if (err) {
       console.log("err", err);
       res.status(400).send({
@@ -311,11 +312,9 @@ router.post("/api/recipes", (req, res) => {
                       throw error;
                     } else {
                       if (result.affectedRows === 0) {
-                        res
-                          .status(500)
-                          .send({
-                            message: "Something went wrong. Try again.",
-                          });
+                        res.status(500).send({
+                          message: "Something went wrong. Try again.",
+                        });
                         return;
                       }
                     }
@@ -335,7 +334,7 @@ router.post("/api/recipes", (req, res) => {
 });
 
 //adding to favorites
-router.post("/api/recipes/favorites/modify", (req, res) => {
+router.post("/api/recipes/favorites/modify", requireAuth, (req, res) => {
   const recipe_id = req.body.recipe_id;
   const user_id = req.body.user_id;
   db.query(
@@ -355,9 +354,9 @@ router.post("/api/recipes/favorites/modify", (req, res) => {
   );
 });
 
-router.put("/api/recipes", (req, res) => {
+router.put("/api/recipes", requireAuth, (req, res) => {
   upload(req, res, (err) => {
-    req = sanitize(req, res);
+    // req = sanitize(req, res);
     let recipe_img = req.body.recipe_name.toLowerCase().split(" ").join("_");
     recipe_img = recipe_img.replaceAll(replaceRegex, "");
     if (err) {
@@ -483,7 +482,7 @@ router.put("/api/recipes", (req, res) => {
 });
 
 //delete from favorite
-router.delete("/api/recipes/favorites/modify", (req, res) => {
+router.delete("/api/recipes/favorites/modify", requireAuth, (req, res) => {
   const recipe_id = req.body.recipe_id;
   const user_id = req.body.user_id;
   db.query(
