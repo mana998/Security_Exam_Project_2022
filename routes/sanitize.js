@@ -29,10 +29,12 @@ function sanitizeObject(object) {
         //console.log("key", key)
         //console.log('typeof', typeof object[key])
         if (typeof object[key] !== 'object') {
-            //console.log("key", key, "object", object[key])
-            //console.log(`before query ${object[key]}`)
-            object[key] = sanitizeHtml(object[key], sanitizeOptions)
-        } else { //recursion if data to sanitize is object
+            console.log("key", key, "object", object[key])
+            console.log(`before query ${object[key]}`)
+            if (typeof object[key] !== 'number') { //dont sanitize number
+                object[key] = sanitizeHtml(object[key], sanitizeOptions)
+            }
+        } else  { //recursion if data to sanitize is object
             object[key] = sanitizeObject(object[key]);
         }
         //console.log(`after query ${object[key]}`)
