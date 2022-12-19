@@ -84,7 +84,7 @@ async function register() {
     username.value = "";
     return;
   }
-  let fetchString = `/api/users/register`;
+  let fetchString = `/secure-api/users/register`;
   const response = await fetch(fetchString, {
     method: "POST",
     headers: {
@@ -97,7 +97,11 @@ async function register() {
     }),
   });
   const result = await response.json();
+  console.log(result);
   $("#message").text(result.message);
+  if (result?.accessToken && result?.claims) {
+    window.location.replace("/");
+  }
 }
 
 async function logout() {
@@ -139,6 +143,7 @@ function setLogoutHtml(id) {
 }
 
 window.addEventListener("load", () => {
+  checkCsrf();
   checkSession();
 });
 
@@ -178,6 +183,16 @@ async function checkSession() {
   } catch (err) {
     console.log(err);
   }
+}
+
+async function checkCsrf() {
+  let fetchString = `/secure-api/csrf`;
+  const response = await fetch(fetchString);
+  const result = await response.json();
+  console.log(result);
+
+  let csrf = document.getElementsByName("_csrf")[0].value;
+  console.log(csrf);
 }
 
 async function refreshToken() {

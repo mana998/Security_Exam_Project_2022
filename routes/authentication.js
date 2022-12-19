@@ -2,7 +2,15 @@ const router = require("express").Router();
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const db = require("../database/connection").connection;
-// const { pool } = require('../database/connection');
+var { randomBytes } = require("crypto");
+
+router.get("/secure-api/csrf", (req, res) => {
+  // console.log(req.csrfToken);
+  if (req.session.csrf === undefined) {
+    req.session.csrf = randomBytes(100).toString("base64");
+  }
+  res.json({ token: req.session.csrf });
+});
 
 router.get("/secure-api/refresh", (req, res) => {
   const { cookies } = req;
@@ -91,13 +99,27 @@ router.post("/secure-api/users/register", (req, res) => {
               (error, result, fields) => {
                 // console.log('res', result);
                 if (result.affectedRows === 1) {
+                  console.log(result);
+
                   res.cookie("session", refreshToken, {
                     httpOnly: true,
                     maxAge: 24 * 60 * 60 * 1000, // 1 day
                   });
-                  res.status(202).send({
+                  res.cookie(
+                    "auth",
+                    JSON.stringify({
+                      accessToken,
+                      claims: { username, user_id: result.insertId },
+                    }),
+                    {
+                      maxAge: 1 * 60 * 1000,
+                    }
+                  );
+
+                  res.status(202).json({
                     message: `User ${username} is registered & logged in!`,
-                    access_token: accessToken,
+                    claims: { username, user_id: result.insertId },
+                    accessToken,
                   });
                 } else {
                   console.log("error query insert user data:", error);
@@ -183,9 +205,13 @@ router.post("/secure-api/users/login", (req, res) => {
                     secure: true,
                     maxAge: 24 * 60 * 60 * 1000, // 1 day
                   });
-                  res.cookie("accessToken", accessToken, {
-                    maxAge: 0.1 * 60 * 60 * 1000,
-                  });
+                  res.cookie(
+                    "auth",
+                    JSON.stringify({ accessToken, claims: user }),
+                    {
+                      maxAge: 1 * 60 * 1000,
+                    }
+                  );
                   res.status(202).json({ claims: user, accessToken });
                 } else {
                   res.status(500).send({ message: "Something went wrong" });
@@ -213,12 +239,6 @@ router.get("/secure-api/users/logout", (req, res) => {
   console.log(cookies);
   if (!cookies?.session) return res.sendStatus(204);
   const refreshToken = cookies.session;
-
-  // res.clearCookie("session", {
-  //   httpOnly: true,
-  //   sameSite: "none",
-  //   secure: true,
-  // });
 
   res.clearCookie("auth");
 
@@ -255,24 +275,6 @@ router.get("/secure-api/users/logout", (req, res) => {
   }
 });
 
-// check if student is above 19 years old
-// const checkAge = (dateOfBirth) => {
-//   const dateOfBirthType = Object.prototype.toString.call(dateOfBirth);
-
-//   if (dateOfBirthType === '[object Date]' || dateOfBirthType === '[object String]') {
-//     dateOfBirth = Date.parse(dateOfBirth); // check for invalid date pattern if string
-
-//     if (isNaN(dateOfBirth)) {
-//       throw new Error('Invalid string pattern for date');
-//     }
-
-//     const pastDate = new Date();
-//     pastDate.setFullYear(pastDate.getFullYear() - 19);
-//     return pastDate >= dateOfBirth;
-//   }
-//   throw new Error('Invalid format');
-// };
-
 // const checkEmail = (email) => {
 //   const mailFormat = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
 //   if (email.match(mailFormat)) {
@@ -281,22 +283,19 @@ router.get("/secure-api/users/logout", (req, res) => {
 //   throw new Error('Invalid format');
 // };
 
-// const checkNameAndSurname = (firstName, lastName) => {
-//   const nameFormat = /^\s*([A-Za-z]{1,}([\.,] |[-']| ))+[A-Za-z]+\.?\s*$/; // english ones, for now
-//   const fullName = `${firstName} ${lastName}`;
+const checkUsername = (username) => {
+  const nameFormat = /^\s*([A-Za-z]{1,}([\.,] |[-']| ))+[A-Za-z]+\.?\s*$/; // english ones, for now
 
-//   if (fullName.match(nameFormat)) {
-//     if (fullName.length > 70) {
-//       throw new Error('Expected length exceeded');
-//     }
-//     return true;
-//   }
-//   throw new Error('Invalid format');
-// };
+  if (username.match(nameFormat)) {
+    if (username.length > 70) {
+      throw new Error("Expected length exceeded");
+    }
+    return true;
+  }
+  throw new Error("Invalid format");
+};
 
 module.exports = {
-  // checkAge,
-  // checkusername,
-  // checkNameAndSurname,
+  checkUsername,
   router,
 };

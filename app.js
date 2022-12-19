@@ -15,7 +15,7 @@ const csrfProtectionMiddleware = csrf({ cookie: true });
 // A new body object containing the parsed data is populated on the request object
 // after the middleware (i.e. req.body). This object will contain key-value pairs,
 // where the value can be a string or array (when extended is false)
-const parseFormMiddleware = bodyParser.urlencoded({ extended: false });
+const parseFormMiddleware = bodyParser.urlencoded({ extended: true });
 
 // create express server
 const app = express();
@@ -60,7 +60,7 @@ app.use(
     resave: false,
     saveUninitialized: true,
     cookie: {
-      secure: true,
+      secure: false,
       httpOnly: true,
     },
   })
@@ -86,7 +86,7 @@ app.use(cookieParser());
 
 app.use(authenticationRouter.router);
 
-app.use(csrfProtectionMiddleware);
+// app.use(csrfProtectionMiddleware);
 
 // app.use(requireAuth); // VERY IMPORTANT WHERE IT'S PLACED // we can't rly use it like this in this case, we need more specific usages
 app.use(recipesRouter.router);
@@ -97,10 +97,10 @@ app.use(measurementsRouter.router);
 app.use(commentsRouter.router);
 
 // Prerequisite for every http request (cookie setup to prevent CSRF)
-app.all("*", (req, res, next) => {
-  res.cookie("XSRF-TOKEN", req.csrfToken());
-  next();
-});
+// app.all("*", (req, res, next) => {
+//   res.cookie("XSRF-TOKEN", req.csrfToken());
+//   next();
+// });
 
 const header = fs.readFileSync(
   __dirname + "/public/header/header.html",
