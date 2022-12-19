@@ -1,5 +1,4 @@
 const router = require("express").Router();
-const db = require("./../database/connection").connection;
 const Recipe = require("./../models/Recipe").Recipe;
 const Ingredient = require("./../models/Ingredient").Ingredient;
 const multer = require("multer");
@@ -36,13 +35,10 @@ const upload = multer({
 }).single("image-recipe");
 
 router.get("/api/recipes", (req, res) => {
+  let db = getConnection();
+
   let page = req.query.page || 1;
   let size = req.query.size || 1000;
-
-  // const { claims } = JSON.parse(req.cookies.auth);
-
-  // console.log(claims);
-  let db = getConnection();
 
   //add filtering
   let filter = req.query.filter || "likes";
@@ -75,12 +71,14 @@ router.get("/api/recipes", (req, res) => {
       });
     }
   });
+  disconnect(db);
 });
 
 router.get("/api/recipes/user/:user_id", requireAuth, (req, res) => {
+  let db = getConnection(req.user.role);
+  
   //add filtering
   console.log(req.user);
-  let db = getConnection(req.user);
 
   let filter = req.query.filter;
   let user_id = req.params["user_id"];
@@ -127,16 +125,17 @@ router.get("/api/recipes/user/:user_id", requireAuth, (req, res) => {
       });
     }
   });
+  disconnect(db);
 });
 
 router.get("/api/recipes/user/:user_id/favorite/:recipe_id", requireAuth, (req, res) => {
+  let db = getConnection(req.user.role);
+  
   //add filtering
   let user_id = req.params["user_id"];
   let recipe_id = req.params["recipe_id"];
   let query = "";
   let values = "";
-
-  let db = getConnection(req.user);
 
   query =
     "SELECT favorite.recipe_id, favorite.user_id, is_private FROM favorite JOIN recipe ON favorite.recipe_id = recipe.recipe_id WHERE favorite.user_id = ? AND favorite.recipe_id = ? AND (is_private=0 OR favorite.user_id = ?);";
@@ -153,11 +152,12 @@ router.get("/api/recipes/user/:user_id/favorite/:recipe_id", requireAuth, (req, 
         });
       }
     });
-  }
-);
+  disconnect(db);
+});
 
 ///delete?
 router.get("/api/recipes/ingredients", requireAuth, (req, res) => {
+  let db = getConnection(req.user.role);
   let values = [];
   /*`SELECT recipe.recipe_id, recipe_name, recipe_img, likes, ingredient_has_recipe.ingredient_id  FROM recipe 
 	INNER JOIN ingredient_has_recipe 
@@ -215,10 +215,12 @@ router.get("/api/recipes/ingredients", requireAuth, (req, res) => {
       });
     }
   });
+  disconnect(db);
 });
 
 //no user id so need to check where is this used
 router.post("/api/recipes/:recipe_name", (req, res) => {
+  let db = getConnection();
   //get recipe from db
   db.query(
     "SELECT * FROM recipe INNER JOIN ingredient_has_recipe ON recipe.recipe_id = ingredient_has_recipe.recipe_id INNER JOIN ingredient ON ingredient_has_recipe.ingredient_id = ingredient.ingredient_id INNER JOIN measurement ON ingredient.measurement_id = measurement.measurement_id WHERE recipe.recipe_name=? AND (recipe.is_private=0 OR recipe.user_id = ?);",
@@ -259,9 +261,11 @@ router.post("/api/recipes/:recipe_name", (req, res) => {
       }
     }
   );
+  disconnect(db);
 });
 
 router.post("/api/recipes", requireAuth, (req, res) => {
+  let db = getConnection(req.user.role);
   upload(req, res, (err) => {
     // req = sanitize(req, res);
     if (err) {
@@ -331,10 +335,12 @@ router.post("/api/recipes", requireAuth, (req, res) => {
       message: "Success!",
     });
   });
+  disconnect(db);
 });
 
 //adding to favorites
 router.post("/api/recipes/favorites/modify", requireAuth, (req, res) => {
+  let db = getConnection(req.user.role);
   const recipe_id = req.body.recipe_id;
   const user_id = req.body.user_id;
   db.query(
@@ -352,9 +358,11 @@ router.post("/api/recipes/favorites/modify", requireAuth, (req, res) => {
       }
     }
   );
+  disconnect(db);
 });
 
 router.put("/api/recipes", requireAuth, (req, res) => {
+  let db = getConnection(req.user.role);
   upload(req, res, (err) => {
     // req = sanitize(req, res);
     let recipe_img = req.body.recipe_name.toLowerCase().split(" ").join("_");
@@ -479,10 +487,12 @@ router.put("/api/recipes", requireAuth, (req, res) => {
       message: "Success!",
     });
   });
+  disconnect(db)
 });
 
 //delete from favorite
 router.delete("/api/recipes/favorites/modify", requireAuth, (req, res) => {
+  let db = getConnection(req.user.role);
   const recipe_id = req.body.recipe_id;
   const user_id = req.body.user_id;
   db.query(
@@ -500,6 +510,7 @@ router.delete("/api/recipes/favorites/modify", requireAuth, (req, res) => {
       }
     }
   );
+  disconnect(db);
 });
 
 module.exports = {

@@ -1,11 +1,12 @@
 const router = require("express").Router();
-const db = require("./../database/connection").connection;
 const bcrypt = require("bcrypt");
 const Comment = require("./../models/Comment").Comment;
 const requireAuth = require("../middleware/requireAuthorization");
+const { getConnection, disconnect } = require("../database/connection");
 const sanitize = require("./sanitize.js");
 
 router.get("/api/comments/:recipe_id", (req, res) => {
+  let db = getConnection();
   let id = req.params["recipe_id"];
   let query =
     "SELECT comment_id, user.user_id, username, comment, timestamp FROM comment INNER JOIN user ON user.user_id = comment.user_id WHERE recipe_id = ?;";
@@ -31,9 +32,11 @@ router.get("/api/comments/:recipe_id", (req, res) => {
       });
     }
   });
+  disconnect(db);
 });
 
 router.post("/api/comments", requireAuth, (req, res) => {
+  let db = getConnection(req.user.role);
   db.query(
     "INSERT INTO comment (recipe_id, user_id, comment) VALUES (?, ?, ?);",
     [req.body.recipe_id, req.body.user_id, req.body.comment],
@@ -49,9 +52,11 @@ router.post("/api/comments", requireAuth, (req, res) => {
       }
     }
   );
+  disconnect(db);
 });
 
 router.patch("/api/comments/:comment_id", requireAuth, (req, res) => {
+  let db = getConnection(req.user.role);
   let id = req.params["comment_id"];
   db.query(
     "UPDATE comment SET comment = ? WHERE comment_id = ?;",
@@ -68,9 +73,11 @@ router.patch("/api/comments/:comment_id", requireAuth, (req, res) => {
       }
     }
   );
+  disconnect(db);
 });
 
 router.delete("/api/comments/:comment_id", requireAuth, (req, res) => {
+  let db = getConnection(req.user.role);
   let id = req.params["comment_id"];
   db.query(
     "DELETE FROM comment WHERE comment_id = ?;",
@@ -87,6 +94,7 @@ router.delete("/api/comments/:comment_id", requireAuth, (req, res) => {
       }
     }
   );
+  disconnect(db);
 });
 
 module.exports = {
