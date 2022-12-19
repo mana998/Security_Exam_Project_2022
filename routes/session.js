@@ -3,8 +3,6 @@ const router = require("express").Router();
 router.get("/getsession", (req, res) => {
     res.status(200).send({
         id: req.session.userId, 
-        chats: req.session.chats, 
-        openChats: req.session.openChats
     });
 })
 
@@ -14,20 +12,6 @@ router.post("/setsession/id", (req, res) => {
         res.status(201).send({id: req.body.id, message: "Session set"});
     } else {
         res.status(500).send({message: "Session not set"});
-    }
-})
-
-router.post("/setsession/chat", (req, res) => {
-    if (req.body.chats && req.body.openChats) {
-        req.session.chats = req.body.chats;
-        req.session.openChats = req.body.openChats;
-        res.status(201).send({
-            message: "Session set"
-        });
-    } else {
-        res.status(500).send({
-            message: "Session not set"
-        });
     }
 })
 

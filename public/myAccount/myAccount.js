@@ -27,13 +27,19 @@ function generateRecipe(recipe, container) {
 
 //take ingredients from db and add them to the form
 async function updateModal(recipe_name) {
-    const response = await fetch(`/api/recipes/${recipe_name}`);
+    const user_id = await getLoginSession();
+    const response = await fetch(`/api/recipes/${recipe_name}`, {
+        method: 'post',
+        body: user_id
+    });
     const result = await response.json();
     $("#ingredientsArray").empty();
     $('#img-response').text('');
     $('#modalHeadder').text('Update recipe');
     $('#recipeId').attr("value", result.recipe.id);
     $('#recipe_name').val(result.recipe.name);
+    $('#private').attr("checked",true);
+    $('#public').attr("checked", false);
     $('#recipe_description').val(result.recipe.description.replace(/^\s*\s/gm,''));
     result.ingredients.map(ingredient => {
         if ($("#ingredientsArray").children().length !== 0) {
@@ -210,6 +216,7 @@ async function submitForm(e) {
     const user_id = await getLoginSession();
     let formData = new FormData(document.getElementById('recipeForm'));
     formData.append('user_id', user_id);
+    console.log("Formdata", formData);
     let response = '';
     let result = '';
     if ($('#modalHeadder').text() === 'Add recipe') {

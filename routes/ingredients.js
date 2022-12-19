@@ -2,6 +2,7 @@ const router = require("express").Router();
 const db = require("./../database/connection").connection; 
 const Ingredient = require("./../models/Ingredient").Ingredient;
 const multer = require('multer');
+const sanitize = require("./sanitize.js");
 
 router.get("/api/ingredients", (req, res) => {
     
@@ -11,7 +12,8 @@ router.get("/api/ingredients", (req, res) => {
             
             //write recipe to object
             const ingredients = [];
-            for (const ingredient of result){
+            for (let ingredient of result){
+                ingredient = sanitize(ingredient);
                 ingredients.push(new Ingredient(ingredient.ingredient_id, ingredient.ingredient_name, ingredient.measurement_name));
             };     
             res.status(200).send({

@@ -18,13 +18,8 @@ async function login() {
         if (result.id) {
             result = await updateLoginStatus(result.id);
             if (result.id) {
-                await renderChat();
-                await socket.emit("online users change");
                 $('#loginModal').modal('hide');
                 setLogoutHtml(result.id);
-
-                //let server know that user is logged in
-                socket.emit("user connected", ({id: result.id}));
             }
         }
     }
