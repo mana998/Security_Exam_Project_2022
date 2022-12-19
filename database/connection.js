@@ -1,8 +1,8 @@
 require('dotenv').config();
 
-const mysql = require('mysql');
+const mysql = require('mysql2');
 
-function getConnection(userType) {
+/*function getConnection(userType) {
     const connectionParams = {
         host: process.env.HOST,
         database: process.env.DATANASE
@@ -32,9 +32,24 @@ function getConnection(userType) {
 
 function disconnect(connection) {
     connection.disconnect();
-}
+}*/
+
+const connection = mysql.createConnection({
+    host     : process.env.HOST,
+    database : process.env.DATABASE,
+    user     : process.env.USER,
+    password : process.env.PASSWORD
+})
+
+connection.connect(function(err) {
+    if (err) {
+        console.log(err.message);
+        throw err.message;
+    }
+    console.log("Connected!");
+});
+
 
 module.exports = {
-    getConnection,
-    disconnect
+    connection
 }
