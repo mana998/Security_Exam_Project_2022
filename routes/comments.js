@@ -1,7 +1,8 @@
 const router = require("express").Router();
-const db = require("./../database/connection").connection; 
+const db = require("./../database/connection").connection;
 const bcrypt = require("bcrypt");
 const Comment = require("./../models/Comment").Comment;
+const requireAuth = require("../middleware/requireAuthorization");
 const sanitize = require("./sanitize.js");
 
 router.get("/api/comments/:recipe_id", (req, res) => {
@@ -25,52 +26,61 @@ router.get("/api/comments/:recipe_id", (req, res) => {
 })
 
 router.post("/api/comments", (req, res) => {
-    
-    db.query('INSERT INTO comment (recipe_id, user_id, comment) VALUES (?, ?, ?);',[req.body.recipe_id, req.body.user_id, req.body.comment], (error, result, fields) => {
-        if (result && result.affectedRows === 1) {
-            res.status(201).send({
-                message: "User added."
-            });
-        } else {
-            res.status(500).send({
-                message: "Something went wrong. Try again."
-            });
-        }
-    });
-})
+  db.query(
+    "INSERT INTO comment (recipe_id, user_id, comment) VALUES (?, ?, ?);",
+    [req.body.recipe_id, req.body.user_id, req.body.comment],
+    (error, result, fields) => {
+      if (result && result.affectedRows === 1) {
+        res.status(201).send({
+          message: "User added.",
+        });
+      } else {
+        res.status(500).send({
+          message: "Something went wrong. Try again.",
+        });
+      }
+    }
+  );
+});
 
 router.patch("/api/comments/:comment_id", (req, res) => {
-    
-    let id = req.params["comment_id"];
-    db.query('UPDATE comment SET comment = ? WHERE comment_id = ?;',[req.body.comment, id], (error, result, fields) => {
-        if (result.affectedRows === 1) {
-            res.status(201).send({
-                message: "Comment updated."
-            });
-        } else {
-            res.status(500).send({
-                message: "Something went wrong. Try again."
-            });
-        }
-    });
-})
+  let id = req.params["comment_id"];
+  db.query(
+    "UPDATE comment SET comment = ? WHERE comment_id = ?;",
+    [req.body.comment, id],
+    (error, result, fields) => {
+      if (result.affectedRows === 1) {
+        res.status(201).send({
+          message: "Comment updated.",
+        });
+      } else {
+        res.status(500).send({
+          message: "Something went wrong. Try again.",
+        });
+      }
+    }
+  );
+});
 
 router.delete("/api/comments/:comment_id", (req, res) => {
-    
-    let id = req.params["comment_id"];
-    db.query('DELETE FROM comment WHERE comment_id = ?;',[id], (error, result, fields) => {
-        if (result && result.affectedRows === 1) {
-            res.status(201).send({
-                message: "Comment deleted."
-            });
-        } else {
-            res.status(500).send({
-                message: "Something went wrong. Try again."
-            });
-        }
-    });
-})
+  let id = req.params["comment_id"];
+  db.query(
+    "DELETE FROM comment WHERE comment_id = ?;",
+    [id],
+    (error, result, fields) => {
+      if (result && result.affectedRows === 1) {
+        res.status(201).send({
+          message: "Comment deleted.",
+        });
+      } else {
+        res.status(500).send({
+          message: "Something went wrong. Try again.",
+        });
+      }
+    }
+  );
+});
 
 module.exports = {
-    router: router
-}
+  router: router,
+};

@@ -24,6 +24,7 @@
 						</div>
 						<div class="modal-body">
 							<form id="recipeForm" method="POST" enctype="multipart/form-data" action="/api/recipe/recipeAdd" >
+								<input type="hidden" name="_csrf" value={{token}}>
 								<div class="form-group">
 									<label for="recipe_name">Recipe name</label>
 									<input type="text" class="form-control" id="recipe_name" name="recipe_name" required placeholder="Enter recipe name">
@@ -71,6 +72,7 @@
 						</div>
 						<div class="modal-body">
 							<form id="ingredientForm" enctype="multipart/form-data" method="POST" action='/api/recipe/addIngredient' >
+								<input type="hidden" name="_csrf" value={{token}}>
 								<div class="form-group">
 									<label for="ingredient_name">Ingredient name</label>
 									<input type="text" class="form-control" id="ingredient_name" name="ingredient_name" required placeholder="Enter ingredient name">

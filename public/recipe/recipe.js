@@ -1,5 +1,5 @@
 async function renderRecipe() {
-    const user_id = await getLoginSession();
+    const user_id = await refreshToken();
     let fetchString = `/api${window.location.pathname}`;
     let response = await fetch(fetchString, {
         method: 'post',

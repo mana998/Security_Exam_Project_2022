@@ -37,7 +37,8 @@ router.post("/api/users/register", (req, res) => {
         } else if (result.length === 0) {
             bcrypt.hash(req.body.password, saltRounds, (error, hash) => {
                 if (!error) {
-                    db.query('INSERT INTO user (username, password) VALUES (?, ?);',[req.body.username, hash], (error, result, fields) => {
+                    db.query('INSERT INTO user (username, password, active, role_id) VALUES (?, ?, ?, ?);',[req.body.username, hash, 0, 1], (error, result, fields) => {
+                        console.log('res', result);
                         if (result.affectedRows === 1) {
                             res.status(201).send({
                                 message: "User added."
