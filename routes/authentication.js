@@ -4,7 +4,6 @@ const jwt = require("jsonwebtoken");
 // let db = require("../database/connection").getConnection('guest');
 const { getConnection, disconnect } = require("../database/connection");
 var { randomBytes } = require("crypto");
-let db = getConnection('guest');
 let db = getConnection("guest");
 
 router.get("/secure-api/refresh", (req, res) => {
