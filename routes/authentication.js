@@ -259,8 +259,6 @@ router.post("/secure-api/users/login", (req, res) => {
                       }
                     }
                   );
-
-                  res.status(202).json({ claims: user, accessToken });
                 } else {
                   res.status(500).message("Internal server error");
                 }
