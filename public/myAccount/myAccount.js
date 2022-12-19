@@ -66,7 +66,7 @@ function addModal() {
 
 //get logged in user rcipes and add them to the page
 async function renderMyRecipes(container,filter = "") {
-    const user_id = await getLoginSession();
+    const user_id = await refreshToken();
     if (user_id || container === 'recipes-container') {
         let fetchString = '';
         if (container === 'recipes-container') {
@@ -209,7 +209,7 @@ $('#recipeForm').on('submit', submitForm);
 
 async function submitForm(e) {
     e.preventDefault();
-    const user_id = await getLoginSession();
+    const user_id = await refreshToken();
     let formData = new FormData(document.getElementById('recipeForm'));
     formData.append('user_id', user_id);
     console.log("Formdata", formData);
@@ -268,7 +268,7 @@ async function recipeNameCheck(recipe_name, recipe_id = -1) {
 
 //add/delete recipe to favorite for the user who is logged in
 async function addOrDeleteFromFavorite(recipe_id, heart_id, container) {
-    const user_id = await getLoginSession();
+    const user_id = await refreshToken();
     if (user_id) {
         if ($(`#${heart_id}`).attr('src') == './../global/icons/heart.png') {
             addFavorite(recipe_id, user_id, container);
@@ -338,7 +338,7 @@ function refresh(container) {
 //check if recipe is liked by the user
 //fetch all favorite and check if recipe id is there if yes give heart filled 
 async function checkFavorite(recipe_id, container) {
-    const user_id = await getLoginSession();
+    const user_id = await refreshToken();
     let fetchString = `/api/recipes/user/${user_id}/favorite/${recipe_id}`;
     const response = await fetch(fetchString);
     const result = await response.json();
