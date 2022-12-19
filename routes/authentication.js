@@ -1,8 +1,10 @@
 const router = require("express").Router();
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
-const db = require("../database/connection").connection;
+// let db = require("../database/connection").getConnection('guest');
+const { getConnection, disconnect } = require("../database/connection")
 var { randomBytes } = require("crypto");
+let db = getConnection('guest');
 
 router.get("/secure-api/csrf", (req, res) => {
   // console.log(req.csrfToken);
@@ -107,11 +109,10 @@ router.post("/secure-api/users/register", (req, res) => {
               { expiresIn: "1d" }
             );
 
-            query =
-              "INSERT INTO user (username, password, role_id, refresh_token) VALUES (?, ?, ?, ?);";
+            query = "INSERT INTO user (username, password, role_id, refresh_token) VALUES (?, ?, ?, ?);";
             db.query(
               query,
-              [username, hash, 0, 1, refreshToken],
+              [username, hash, 1, refreshToken],
               (error, result, fields) => {
                 // console.log('res', result);
                 if (result.affectedRows === 1) {
@@ -203,6 +204,7 @@ router.post("/secure-api/users/login", (req, res) => {
 
             const roleQuery = "SELECT * from role WHERE role_id = ?";
 
+            
             db.query(
               roleQuery,
               [result[0].role_id],
@@ -230,6 +232,7 @@ router.post("/secure-api/users/login", (req, res) => {
                   });
 
                   const refreshQuery = `UPDATE user SET refresh_token = ? WHERE user_id = ?;`;
+                  db = getConnection('user');
                   db.query(
                     refreshQuery,
                     [refreshToken, user.user_id],

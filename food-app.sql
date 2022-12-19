@@ -62,7 +62,7 @@ CREATE TABLE IF NOT EXISTS `cooking`.`user` (
   `username` VARCHAR(45) NOT NULL,
   `password` VARCHAR(128) NOT NULL,
   `role_id` INT NOT NULL,
-  `refresh_token` VARCHAR(255),
+  `refresh_token` VARCHAR(255)
   PRIMARY KEY (`user_id`),
   UNIQUE INDEX `user_id_UNIQUE` (`user_id` ASC) VISIBLE,
   UNIQUE INDEX `username_UNIQUE` (`username` ASC) VISIBLE,
