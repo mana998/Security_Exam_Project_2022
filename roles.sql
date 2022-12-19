@@ -10,13 +10,13 @@ CREATE ROLE 'admin_role', 'user_role', 'guest_role';
 -- admin_role --
 GRANT ALL ON cooking.* TO 'admin_role';
 
--- user_role role --
+-- user_role --
 GRANT SELECT ON cooking.* TO 'user_role';
 GRANT INSERT, UPDATE, DELETE ON cooking.comment TO 'user_role';
 GRANT INSERT ON cooking.ingredient TO 'user_role';
 GRANT INSERT, UPDATE, DELETE ON cooking.ingredient_has_recipe TO 'user_role';
 GRANT INSERT, UPDATE, DELETE ON cooking.recipe TO 'user_role';
-GRANT INSERT, UPDATE, DELETE ON cooking.user TO 'user_role';
+GRANT UPDATE, DELETE ON cooking.user TO 'user_role';
 
 -- guest_role --
 GRANT SELECT ON cooking.comment TO 'guest_role';
