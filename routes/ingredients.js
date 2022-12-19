@@ -1,8 +1,8 @@
 const router = require("express").Router();
-const db = require("./../database/connection").connection;
 const Ingredient = require("./../models/Ingredient").Ingredient;
 const multer = require("multer");
 const sanitize = require("./sanitize.js");
+const { getConnection, disconnect } = require("../database/connection");
 const requireAuth = require("../middleware/requireAuthorization");
 
 router.get("/api/ingredients", (req, res) => {
@@ -35,11 +35,13 @@ router.get("/api/ingredients", (req, res) => {
       }
     }
   );
+  disconnect(db)
 });
 
 const parseMulter = multer();
 
 router.post("/api/ingredients", requireAuth, parseMulter.none(), (req, res) => {
+  let db = getConnection(req.user.role);
   let exists = 0;
   db.query("SELECT * FROM ingredient;", (error, result, fields) => {
     if (result.length != 0) {
@@ -74,6 +76,7 @@ router.post("/api/ingredients", requireAuth, parseMulter.none(), (req, res) => {
       }
     }
   });
+  disconnect(db);
 });
 
 module.exports = {

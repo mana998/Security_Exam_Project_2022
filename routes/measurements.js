@@ -1,8 +1,9 @@
 const router = require("express").Router();
-const db = require("./../database/connection").connection;
+const { getConnection, disconnect } = require("../database/connection");
 const sanitize = require("./sanitize.js");
 
 router.get("/api/measurements", (req, res) => {
+  let db = getConnection();
   //get ingredients from db
   db.query("SELECT * FROM measurement;", (error, result, fields) => {
     if (result?.length !== 0) {
@@ -23,6 +24,7 @@ router.get("/api/measurements", (req, res) => {
       });
     }
   });
+  disconnect(db)
 });
 
 module.exports = {
