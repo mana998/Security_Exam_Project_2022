@@ -79,7 +79,6 @@ router.get("/api/recipes", (req, res) => {
 
 router.get("/api/recipes/user/:user_id", requireAuth, (req, res) => {
   //add filtering
-  console.log(req.user);
   let db = getConnection(req.user);
 
   let filter = req.query.filter;
@@ -129,18 +128,21 @@ router.get("/api/recipes/user/:user_id", requireAuth, (req, res) => {
   });
 });
 
-router.get("/api/recipes/user/:user_id/favorite/:recipe_id", requireAuth, (req, res) => {
-  //add filtering
-  let user_id = req.params["user_id"];
-  let recipe_id = req.params["recipe_id"];
-  let query = "";
-  let values = "";
+router.get(
+  "/api/recipes/user/:user_id/favorite/:recipe_id",
+  requireAuth,
+  (req, res) => {
+    //add filtering
+    let user_id = req.params["user_id"];
+    let recipe_id = req.params["recipe_id"];
+    let query = "";
+    let values = "";
 
-  let db = getConnection(req.user);
+    let db = getConnection(req.user);
 
-  query =
-    "SELECT favorite.recipe_id, favorite.user_id, is_private FROM favorite JOIN recipe ON favorite.recipe_id = recipe.recipe_id WHERE favorite.user_id = ? AND favorite.recipe_id = ? AND (is_private=0 OR favorite.user_id = ?);";
-  values = [user_id, recipe_id, user_id];
+    query =
+      "SELECT favorite.recipe_id, favorite.user_id, is_private FROM favorite JOIN recipe ON favorite.recipe_id = recipe.recipe_id WHERE favorite.user_id = ? AND favorite.recipe_id = ? AND (is_private=0 OR favorite.user_id = ?);";
+    values = [user_id, recipe_id, user_id];
 
     db.query(query, values, (error, result, fields) => {
       if (result && result.length) {

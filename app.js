@@ -104,10 +104,10 @@ app.use(commentsRouter.router);
 // app.use("/api", sanitize);
 
 // Prerequisite for every http request (cookie setup to prevent CSRF)
-// app.all("*", (req, res, next) => {
-//   res.cookie("XSRF-TOKEN", req.csrfToken());
-//   next();
-// });
+app.all("*", (req, res, next) => {
+  res.cookie("XSRF-TOKEN", req.csrfToken());
+  next();
+});
 
 const header = fs.readFileSync(
   __dirname + "/public/header/header.html",
