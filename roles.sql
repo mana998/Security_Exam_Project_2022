@@ -28,7 +28,7 @@ GRANT SELECT ON cooking.role TO 'guest_role';
 GRANT INSERT, SELECT ON cooking.user TO 'guest_role';
 
 -- create users --
-CREATE USER 'admin' identified by 'passwordAdmin';
+CREATE USER 'superSecureAdmin' identified by 'SecurityExam.';
 CREATE USER 'user' identified by 'passwordUser';
 CREATE USER 'guest' identified by 'passwordGuest';
 

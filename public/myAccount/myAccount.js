@@ -28,7 +28,8 @@ function generateRecipe(recipe, container) {
 
 //take ingredients from db and add them to the form
 async function updateModal(recipe_name) {
-  const user_id = await getLoginSession();
+        body: user_id,
+    const user_id = await refreshToken();
   const response = await fetch(`/api/recipes/${recipe_name}`, {
     method: "post",
     credentials: "same-origin",
@@ -79,14 +80,38 @@ function addModal() {
 }
 
 //get logged in user rcipes and add them to the page
-async function renderMyRecipes(container, filter = "") {
-  const user_id = await refreshToken();
-  if (user_id || container === "recipes-container") {
-    let fetchString = "";
-    if (container === "recipes-container") {
-      fetchString = `/api/recipes?size=${pageSort.size}&page=${pageSort.page}&filter=${pageSort.filter}&direction=${pageSort.direction}`;
-      $(`#${container}`).empty();
-      $(".recipes .sorting-paging-buttons").remove();
+async function renderMyRecipes(container,filter = "") {
+    console.log("rendermyrecipes")
+    const user_id = await refreshToken();
+    console.log("rendermyrecipes", container, user_id)
+    if (user_id || container === 'recipes-container') {
+        let fetchString = '';
+        if (container === 'recipes-container') {
+            fetchString = `/api/recipes?size=${pageSort.size}&page=${pageSort.page}&filter=${pageSort.filter}&direction=${pageSort.direction}`;
+            $(`#${container}`).empty();
+            $(".recipes .sorting-paging-buttons").remove();
+        } else {
+            fetchString = `/api/recipes/user/${user_id}?filter=${filter}`;
+        }
+        const response = await fetch(fetchString);
+        const result = await response.json();
+        if (result.recipes && result.recipes.length) {
+            result.recipes.map(recipe => {
+                $(`#${container}`).append(generateRecipe(recipe,container));
+                checkFavorite(recipe.id, container);
+                $(`#update-icon-favorite-recipes-${recipe.id}`).css('display','none');
+                $(`#update-icon-recipes-container-${recipe.id}`).css('display','none');
+            });
+        } else if (result.message) {
+            $(`#${container}`).append(`<h2>${result.message}</h2>`);
+        } else {
+            $(`#${container}`).append(`<h2>Something went wrong</h2>`);
+        }
+        if (container === 'recipes-container') {
+            $(".recipes").prepend(renderSortingPaging()).append(renderSortingPaging());
+            $(`.sort-dropdown option[value="${pageSort.filter}-${pageSort.direction}"]`).attr("selected", true);
+            $(`#${pageSort.filter}-${pageSort.direction}`).attr("selected", true);    
+        }            
     } else {
       fetchString = `/api/recipes/user/${user_id}?filter=${filter}`;
     }

@@ -192,11 +192,15 @@ async function checkSession() {
 async function refreshToken() {
   let fetchString = `/secure-api/refresh`;
   const response = await fetch(fetchString);
-  const result = await response.json();
-  if (result.accessToken && result.claims) {
+  let result;
+  if (response && !response.statusText == "Unauthorized") {
+    result = await response.json();
+  }
+  if (!result?.accessToken || !result?.claims) {
+    console.log("Something went wrong");
+    return;
+  } else {
     console.log("ON REFRESH TOKEN", result);
     return result.claims.user_id;
-  } else {
-    console.log("Something went wrong");
   }
 }
