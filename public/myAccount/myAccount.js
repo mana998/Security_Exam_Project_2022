@@ -28,15 +28,14 @@ function generateRecipe(recipe, container) {
 
 //take ingredients from db and add them to the form
 async function updateModal(recipe_name) {
-        body: user_id,
     const user_id = await refreshToken();
-  const response = await fetch(`/api/recipes/${recipe_name}`, {
-    method: "post",
-    credentials: "same-origin",
-    headers: {
-      "CSRF-Token": cookie,
-    },
-    body: user_id,
+    const response = await fetch(`/api/recipes/${recipe_name}`, {
+        method: "post",
+        credentials: "same-origin",
+        headers: {
+        "CSRF-Token": cookie,
+        },
+        body: user_id,
   });
   const result = await response.json();
   $("#ingredientsArray").empty();
@@ -137,7 +136,6 @@ async function renderMyRecipes(container,filter = "") {
         `.sort-dropdown option[value="${pageSort.filter}-${pageSort.direction}"]`
       ).attr("selected", true);
       $(`#${pageSort.filter}-${pageSort.direction}`).attr("selected", true);
-    }
   } else {
     window.location.replace("/");
   }
