@@ -5,7 +5,7 @@ async function login() {
   const cookie = getCookie("XSRF-TOKEN");
   console.log("XSRF", cookie);
 
-  let fetchString = `secure-api/users/login`;
+  let fetchString = `/secure-api/users/login`;
   const response = await fetch(fetchString, {
     method: "POST",
     credentials: "same-origin",
@@ -119,7 +119,7 @@ async function logout() {
       "Content-Type": "application/json",
     },
   });
-  console.log(response);
+  console.log("LOGOUT", response);
   if (response.status === 200) {
     setLoginHtml();
   } else {
@@ -148,7 +148,6 @@ function setLogoutHtml(id) {
 }
 
 window.addEventListener("load", () => {
-  checkCsrf();
   checkSession();
 });
 
@@ -189,16 +188,6 @@ async function checkSession() {
   } catch (err) {
     console.log(err);
   }
-}
-
-async function checkCsrf() {
-  let fetchString = `/secure-api/csrf`;
-  const response = await fetch(fetchString);
-  const result = await response.json();
-  console.log(result);
-
-  let csrf = document.getElementsByName("_csrf")[0].value;
-  console.log(csrf);
 }
 
 async function refreshToken() {

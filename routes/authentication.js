@@ -2,17 +2,9 @@ const router = require("express").Router();
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 // let db = require("../database/connection").getConnection('guest');
-const { getConnection, disconnect } = require("../database/connection")
+const { getConnection, disconnect } = require("../database/connection");
 var { randomBytes } = require("crypto");
-let db = getConnection('guest');
-
-router.get("/secure-api/csrf", (req, res) => {
-  // console.log(req.csrfToken);
-  if (req.session.csrf === undefined) {
-    req.session.csrf = randomBytes(100).toString("base64");
-  }
-  res.json({ token: req.session.csrf });
-});
+let db = getConnection("guest");
 
 router.get("/secure-api/refresh", (req, res) => {
   const { cookies } = req;
@@ -109,7 +101,8 @@ router.post("/secure-api/users/register", (req, res) => {
               { expiresIn: "1d" }
             );
 
-            query = "INSERT INTO user (username, password, role_id, refresh_token) VALUES (?, ?, ?, ?);";
+            query =
+              "INSERT INTO user (username, password, role_id, refresh_token) VALUES (?, ?, ?, ?);";
             db.query(
               query,
               [username, hash, 1, refreshToken],
@@ -263,7 +256,7 @@ router.post("/secure-api/users/login", (req, res) => {
               }
             );
             disconnect(db);
-            db = getConnection('user'); 
+            db = getConnection("user");
           } else {
             return res
               .status(401)
@@ -282,7 +275,6 @@ router.post("/secure-api/users/login", (req, res) => {
 
 router.get("/secure-api/users/logout", (req, res) => {
   const { cookies } = req;
-  console.log(cookies);
   if (!cookies?.session) return res.sendStatus(204);
   const refreshToken = cookies.session;
 
@@ -312,6 +304,8 @@ router.get("/secure-api/users/logout", (req, res) => {
             secure: true,
           });
           res.sendStatus(200);
+        } else {
+          res.status(500).send({ message: "Internal server error" });
         }
       });
     });
