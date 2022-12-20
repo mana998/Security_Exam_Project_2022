@@ -34,19 +34,30 @@ const upload = multer({
   limits: { fileSize: 5000000 }, //def allowed file size
 }).single("image-recipe");
 
-router.get("/api/recipes", requireAuth, (req, res) => {
+router.get("/api/recipes", (req, res) => {
   let db = getConnection();
-
   let page = req.query.page || 1;
   let size = req.query.size || 1000;
 
   //add filtering
   let filter = req.query.filter || "likes";
   let direction = req.query.direction || "desc";
-  console.log(req.user);
   //needs to be in there as else it is putting it into quotes
-  let query = `SELECT recipe_id, recipe_name, recipe_img, likes, is_private, role FROM recipe JOIN user ON user.user_id = recipe.user_id JOIN role ON user.role_id = role.role_id WHERE (is_private = 0 OR recipe.user_id = ? OR role = 'admin') ORDER BY ${filter} ${direction} LIMIT ? OFFSET ?;`;
-  values = [req.user.user_id, Number(size), Number((page - 1) * size)];
+  let query;
+  console.log(req.cookies);
+  if (req?.cookies?.auth?.role === 'admin') {
+    console.log('admin');
+    query = `SELECT recipe_id, recipe_name, recipe_img, likes, is_private FROM recipe ORDER BY ${filter} ${direction} LIMIT ? OFFSET ?;`;
+    values = [Number(size), Number((page - 1) * size)];
+  } else if (req?.cookies?.auth?.role === 'user') {
+    console.log('else');
+    query = `SELECT recipe_id, recipe_name, recipe_img, likes, is_private FROM recipe WHERE (is_private = 0 OR recipe.user_id = ?) ORDER BY ${filter} ${direction} LIMIT ? OFFSET ?;`;
+    values = [req.cookies.auth.user_id, Number(size), Number((page - 1) * size)];
+  } else {
+    console.log("logged out")
+    query = `SELECT recipe_id, recipe_name, recipe_img, likes, is_private FROM recipe WHERE (is_private = 0) ORDER BY ${filter} ${direction} LIMIT ? OFFSET ?;`;
+    values = [Number(size), Number((page - 1) * size)];
+  }
   db.query(query, values, (error, result, fields) => {
     if (result && result.length) {
       //write recipe to object
@@ -60,7 +71,8 @@ router.get("/api/recipes", requireAuth, (req, res) => {
             "",
             "",
             recipe.recipe_img,
-            recipe.likes
+            recipe.likes,
+            recipe.is_private
           )
         );
       }
@@ -74,7 +86,7 @@ router.get("/api/recipes", requireAuth, (req, res) => {
   disconnect(db);
 });
 
-router.get("/api/recipes/user/:user_id", requireAuth, (req, res) => {
+router.get("/api/recipes/user/:user_id", requireAuth, async (req, res) => {
   let db = getConnection(req.user.role);
   
   //add filtering
@@ -91,9 +103,14 @@ router.get("/api/recipes/user/:user_id", requireAuth, (req, res) => {
     values = [user_id];
   } else if (filter == "favorite") {
     //or add admin role
-    query =
-      "SELECT recipe.recipe_id, recipe.recipe_name,recipe.recipe_desc, recipe.recipe_img, recipe.likes, recipe.is_private FROM recipe INNER JOIN favorite ON recipe.recipe_id = favorite.recipe_id JOIN user ON user.user_id = recipe.user_id JOIN role ON user.role_id = role.role_id WHERE favorite.user_id = ? AND (recipe.is_private=0 OR recipe.user_id = ? OR role = 'admin');";
-    values = [user_id, user_id];
+    const userRole = await getUserRole(user_id);
+    if (userRole === 'admin') {
+      query = "SELECT recipe.recipe_id, recipe.recipe_name,recipe.recipe_desc, recipe.recipe_img, recipe.likes, recipe.is_private FROM recipe INNER JOIN favorite ON recipe.recipe_id = favorite.recipe_id WHERE favorite.user_id = ?;";
+      values = [user_id];
+    } else {
+      query = "SELECT recipe.recipe_id, recipe.recipe_name,recipe.recipe_desc, recipe.recipe_img, recipe.likes, recipe.is_private FROM recipe INNER JOIN favorite ON recipe.recipe_id = favorite.recipe_id  WHERE favorite.user_id = ? AND (recipe.is_private=0 OR recipe.user_id = ?);";
+      values = [user_id, user_id];
+    }
   } else {
     res.status(200).send({
       message: "No recipes found",
@@ -136,9 +153,11 @@ router.get("/api/recipes/user/:user_id/favorite/:recipe_id", requireAuth, (req, 
   let recipe_id = req.params["recipe_id"];
   let query = "";
   let values = "";
-
-  query =
-    "SELECT favorite.recipe_id, favorite.user_id, is_private FROM favorite JOIN recipe ON favorite.recipe_id = recipe.recipe_id JOIN user ON user.user_id = recipe.user_id JOIN role ON user.role_id = role.role_id  WHERE favorite.user_id = ? AND favorite.recipe_id = ? AND (is_private=0 OR favorite.user_id = ? R role = 'admin');";
+  if (req.user.role === 'admin') {
+    query = "SELECT favorite.recipe_id, favorite.user_id, is_private FROM favorite JOIN recipe ON favorite.recipe_id = recipe.recipe_id WHERE favorite.user_id = ? AND favorite.recipe_id = ?;";
+  } else {
+    query = "SELECT favorite.recipe_id, favorite.user_id, is_private FROM favorite JOIN recipe ON favorite.recipe_id = recipe.recipe_id  WHERE favorite.user_id = ? AND favorite.recipe_id = ? AND (is_private=0 OR favorite.user_id = ? );";
+  }
   values = [user_id, recipe_id, user_id];
 
     db.query(query, values, (error, result, fields) => {
@@ -155,7 +174,6 @@ router.get("/api/recipes/user/:user_id/favorite/:recipe_id", requireAuth, (req, 
   disconnect(db);
 });
 
-///delete?
 router.get("/api/recipes/ingredients", requireAuth, (req, res) => {
   let db = getConnection(req.user.role);
   let values = [];
@@ -222,9 +240,19 @@ router.get("/api/recipes/ingredients", requireAuth, (req, res) => {
 router.post("/api/recipes/:recipe_name", (req, res) => {
   let db = getConnection();
   //get recipe from db
+  let query;
+  let values;
+  const userRole = getUserRole(req.body.user_id);
+  console.log("role", userRole);
+  if (userRole === 'admin') {
+    query = "SELECT * FROM recipe INNER JOIN ingredient_has_recipe ON recipe.recipe_id = ingredient_has_recipe.recipe_id INNER JOIN ingredient ON ingredient_has_recipe.ingredient_id = ingredient.ingredient_id INNER JOIN measurement ON ingredient.measurement_id = measurement.measurement_id WHERE recipe.recipe_name=?;";
+    values = [req.params.recipe_name]
+  } else {
+    query = "SELECT * FROM recipe INNER JOIN ingredient_has_recipe ON recipe.recipe_id = ingredient_has_recipe.recipe_id INNER JOIN ingredient ON ingredient_has_recipe.ingredient_id = ingredient.ingredient_id INNER JOIN measurement ON ingredient.measurement_id = measurement.measurement_id WHERE recipe.recipe_name=? AND (recipe.is_private=0 OR recipe.user_id = ?);";
+    values = [req.params.recipe_name, req.body.user_id]
+  }
   db.query(
-    "SELECT * FROM recipe INNER JOIN ingredient_has_recipe ON recipe.recipe_id = ingredient_has_recipe.recipe_id INNER JOIN ingredient ON ingredient_has_recipe.ingredient_id = ingredient.ingredient_id INNER JOIN measurement ON ingredient.measurement_id = measurement.measurement_id JOIN user ON user.user_id = recipe.user_id JOIN role ON user.role_id = role.role_id WHERE recipe.recipe_name=? AND (recipe.is_private=0 OR recipe.user_id = ? OR role = 'admin');",
-    [req.params.recipe_name, req.body.user_id],
+    query, values,
     (error, result, fields) => {
       if (result && result.length !== 0) {
         //write recipe to object
@@ -265,6 +293,7 @@ router.post("/api/recipes/:recipe_name", (req, res) => {
 });
 
 router.post("/api/recipes", requireAuth, (req, res) => {
+  console.log("here");
   upload(req, res, (err) => {
     let db = getConnection(req.user.role);
     // req = sanitize(req, res);
@@ -512,6 +541,24 @@ router.delete("/api/recipes/favorites/modify", requireAuth, (req, res) => {
   );
   disconnect(db);
 });
+
+async function getUserRole(userId) {
+  role = 'guest';
+  if (userId) {
+    let db = await getConnection();
+    console.log(db);
+    db.query(
+      "SELECT role FROM role JOIN user ON user.role_id = role.role_id WHERE user.user_id = ?",
+      [userId],
+      (error, result, fields) => {
+        if (!error && result && result.length === 1) {
+          role = result[0];
+        }
+    });
+    disconnect(db);
+  }
+  return role;
+}
 
 module.exports = {
   router: router,

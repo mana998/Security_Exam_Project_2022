@@ -1,6 +1,7 @@
 async function renderRecipe() {
     const user_id = await refreshToken();
     let fetchString = `/api${window.location.pathname}`;
+    console.log("fetchstring", fetchString, user_id);
     let response = await fetch(fetchString, {
         method: 'post',
         body: user_id
