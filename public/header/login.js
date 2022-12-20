@@ -3,7 +3,6 @@ async function login() {
   let password = document.getElementById("password");
 
   const cookie = getCookie("XSRF-TOKEN");
-  console.log("XSRF", cookie);
 
   let fetchString = `/secure-api/users/login`;
   const response = await fetch(fetchString, {
