@@ -34,7 +34,7 @@ const upload = multer({
   limits: { fileSize: 5000000 }, //def allowed file size
 }).single("image-recipe");
 
-router.get("/api/recipes", (req, res) => {
+router.get("/api/recipes", requireAuth, (req, res) => {
   let db = getConnection();
 
   let page = req.query.page || 1;
@@ -43,10 +43,10 @@ router.get("/api/recipes", (req, res) => {
   //add filtering
   let filter = req.query.filter || "likes";
   let direction = req.query.direction || "desc";
-
+  console.log(req.user);
   //needs to be in there as else it is putting it into quotes
-  let query = `SELECT recipe_id, recipe_name, recipe_img, likes, is_private FROM recipe WHERE is_private = 0 ORDER BY ${filter} ${direction} LIMIT ? OFFSET ?;`;
-  values = [Number(size), Number((page - 1) * size)];
+  let query = `SELECT recipe_id, recipe_name, recipe_img, likes, is_private, role FROM recipe JOIN user ON user.user_id = recipe.user_id JOIN role ON user.role_id = role.role_id WHERE (is_private = 0 OR recipe.user_id = ? OR role = 'admin') ORDER BY ${filter} ${direction} LIMIT ? OFFSET ?;`;
+  values = [req.user.user_id, Number(size), Number((page - 1) * size)];
   db.query(query, values, (error, result, fields) => {
     if (result && result.length) {
       //write recipe to object
@@ -92,7 +92,7 @@ router.get("/api/recipes/user/:user_id", requireAuth, (req, res) => {
   } else if (filter == "favorite") {
     //or add admin role
     query =
-      "SELECT recipe.recipe_id, recipe.recipe_name,recipe.recipe_desc, recipe.recipe_img, recipe.likes, recipe.is_private FROM recipe INNER JOIN favorite ON recipe.recipe_id = favorite.recipe_id WHERE favorite.user_id = ? AND (recipe.is_private=0 OR recipe.user_id = ?);";
+      "SELECT recipe.recipe_id, recipe.recipe_name,recipe.recipe_desc, recipe.recipe_img, recipe.likes, recipe.is_private FROM recipe INNER JOIN favorite ON recipe.recipe_id = favorite.recipe_id JOIN user ON user.user_id = recipe.user_id JOIN role ON user.role_id = role.role_id WHERE favorite.user_id = ? AND (recipe.is_private=0 OR recipe.user_id = ? OR role = 'admin');";
     values = [user_id, user_id];
   } else {
     res.status(200).send({
@@ -138,7 +138,7 @@ router.get("/api/recipes/user/:user_id/favorite/:recipe_id", requireAuth, (req, 
   let values = "";
 
   query =
-    "SELECT favorite.recipe_id, favorite.user_id, is_private FROM favorite JOIN recipe ON favorite.recipe_id = recipe.recipe_id WHERE favorite.user_id = ? AND favorite.recipe_id = ? AND (is_private=0 OR favorite.user_id = ?);";
+    "SELECT favorite.recipe_id, favorite.user_id, is_private FROM favorite JOIN recipe ON favorite.recipe_id = recipe.recipe_id JOIN user ON user.user_id = recipe.user_id JOIN role ON user.role_id = role.role_id  WHERE favorite.user_id = ? AND favorite.recipe_id = ? AND (is_private=0 OR favorite.user_id = ? R role = 'admin');";
   values = [user_id, recipe_id, user_id];
 
     db.query(query, values, (error, result, fields) => {
@@ -223,7 +223,7 @@ router.post("/api/recipes/:recipe_name", (req, res) => {
   let db = getConnection();
   //get recipe from db
   db.query(
-    "SELECT * FROM recipe INNER JOIN ingredient_has_recipe ON recipe.recipe_id = ingredient_has_recipe.recipe_id INNER JOIN ingredient ON ingredient_has_recipe.ingredient_id = ingredient.ingredient_id INNER JOIN measurement ON ingredient.measurement_id = measurement.measurement_id WHERE recipe.recipe_name=? AND (recipe.is_private=0 OR recipe.user_id = ?);",
+    "SELECT * FROM recipe INNER JOIN ingredient_has_recipe ON recipe.recipe_id = ingredient_has_recipe.recipe_id INNER JOIN ingredient ON ingredient_has_recipe.ingredient_id = ingredient.ingredient_id INNER JOIN measurement ON ingredient.measurement_id = measurement.measurement_id JOIN user ON user.user_id = recipe.user_id JOIN role ON user.role_id = role.role_id WHERE recipe.recipe_name=? AND (recipe.is_private=0 OR recipe.user_id = ? OR role = 'admin');",
     [req.params.recipe_name, req.body.user_id],
     (error, result, fields) => {
       if (result && result.length !== 0) {
@@ -265,8 +265,8 @@ router.post("/api/recipes/:recipe_name", (req, res) => {
 });
 
 router.post("/api/recipes", requireAuth, (req, res) => {
-  let db = getConnection(req.user.role);
   upload(req, res, (err) => {
+    let db = getConnection(req.user.role);
     // req = sanitize(req, res);
     if (err) {
       console.log("err", err);
@@ -283,6 +283,7 @@ router.post("/api/recipes", requireAuth, (req, res) => {
         return;
       }
     }
+    console.log("db 286", db);
     //insert into recipe table
     let recipe_img = req.body.recipe_name.toLowerCase().split(" ").join("_");
     recipe_img = recipe_img.replaceAll(replaceRegex, "");
@@ -330,12 +331,11 @@ router.post("/api/recipes", requireAuth, (req, res) => {
         }
       }
     );
-
     res.status(201).send({
       message: "Success!",
     });
+    disconnect(db);
   });
-  disconnect(db);
 });
 
 //adding to favorites
