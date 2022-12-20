@@ -9,7 +9,8 @@ let db = getConnection("guest");
 router.get("/secure-api/refresh", (req, res) => {
   const { cookies } = req;
 
-  if (!cookies?.session) return res.sendStatus(401);
+  if (!cookies?.session)
+    return res.status(401).json({ message: "Unauthorized" });
   const refreshToken = cookies.session;
 
   try {

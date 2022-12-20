@@ -195,12 +195,15 @@ async function refreshToken() {
   let result;
   if (response) {
     result = await response.json();
-  }
-  if (result?.accessToken && result?.claims) {
-    console.log("ON REFRESH TOKEN", result);
-    return result.claims.user_id;
+
+    if (result?.accessToken && result?.claims) {
+      console.log("ON REFRESH TOKEN", result);
+      return result.claims.user_id;
+    } else {
+      console.log("Something went wrong");
+      return;
+    }
   } else {
-    console.log("Something went wrong");
     return;
   }
 }
