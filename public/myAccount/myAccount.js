@@ -140,7 +140,7 @@ async function renderMyRecipes(container, filter = "") {
     ).attr("selected", true);
     $(`#${pageSort.filter}-${pageSort.direction}`).attr("selected", true);
   } else {
-    window.location.replace("/");
+    // window.location.replace("/");
   }
 }
 

@@ -287,13 +287,16 @@ router.get("/secure-api/users/logout", (req, res) => {
     db.query(query, [refreshToken], (error, result, fields) => {
       console.log(result);
       if (!result[0]) {
-        res.clearCookie("session", {
-          httpOnly: true,
-          sameSite: "none",
-          secure: true,
-        });
         return res.sendStatus(204);
       }
+
+      // res.clearCookie("session", {
+      //   httpOnly: true,
+      //   sameSite: "none",
+      //   secure: true,
+      // });
+
+      console.log("LOGGED OUT USER: " + result[0].user_id);
 
       // delete refresh token from db
       const query = "UPDATE user SET refresh_token = ? WHERE user_id = ?";

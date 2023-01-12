@@ -44,17 +44,21 @@ router.get("/api/recipes", (req, res) => {
   let direction = req.query.direction || "desc";
   //needs to be in there as else it is putting it into quotes
   let query;
-  console.log(req.cookies);
-  if (req?.cookies?.auth?.role === 'admin') {
-    console.log('admin');
+  const claims = JSON.parse(req?.cookies?.auth).claims;
+  if (claims.role === "admin") {
+    console.log("admin");
     query = `SELECT recipe_id, recipe_name, recipe_img, likes, is_private FROM recipe ORDER BY ${filter} ${direction} LIMIT ? OFFSET ?;`;
     values = [Number(size), Number((page - 1) * size)];
-  } else if (req?.cookies?.auth?.role === 'user') {
-    console.log('else');
+  } else if (claims.role === "user") {
+    console.log("else");
     query = `SELECT recipe_id, recipe_name, recipe_img, likes, is_private FROM recipe WHERE (is_private = 0 OR recipe.user_id = ?) ORDER BY ${filter} ${direction} LIMIT ? OFFSET ?;`;
-    values = [req.cookies.auth.user_id, Number(size), Number((page - 1) * size)];
+    values = [
+      req.cookies.auth.user_id,
+      Number(size),
+      Number((page - 1) * size),
+    ];
   } else {
-    console.log("logged out")
+    console.log("logged out");
     query = `SELECT recipe_id, recipe_name, recipe_img, likes, is_private FROM recipe WHERE (is_private = 0) ORDER BY ${filter} ${direction} LIMIT ? OFFSET ?;`;
     values = [Number(size), Number((page - 1) * size)];
   }
@@ -88,7 +92,7 @@ router.get("/api/recipes", (req, res) => {
 
 router.get("/api/recipes/user/:user_id", requireAuth, async (req, res) => {
   let db = getConnection(req.user.role);
-  
+
   //add filtering
   console.log(req.user);
 
@@ -104,11 +108,13 @@ router.get("/api/recipes/user/:user_id", requireAuth, async (req, res) => {
   } else if (filter == "favorite") {
     //or add admin role
     const userRole = await getUserRole(user_id);
-    if (userRole === 'admin') {
-      query = "SELECT recipe.recipe_id, recipe.recipe_name,recipe.recipe_desc, recipe.recipe_img, recipe.likes, recipe.is_private FROM recipe INNER JOIN favorite ON recipe.recipe_id = favorite.recipe_id WHERE favorite.user_id = ?;";
+    if (userRole === "admin") {
+      query =
+        "SELECT recipe.recipe_id, recipe.recipe_name,recipe.recipe_desc, recipe.recipe_img, recipe.likes, recipe.is_private FROM recipe INNER JOIN favorite ON recipe.recipe_id = favorite.recipe_id WHERE favorite.user_id = ?;";
       values = [user_id];
     } else {
-      query = "SELECT recipe.recipe_id, recipe.recipe_name,recipe.recipe_desc, recipe.recipe_img, recipe.likes, recipe.is_private FROM recipe INNER JOIN favorite ON recipe.recipe_id = favorite.recipe_id  WHERE favorite.user_id = ? AND (recipe.is_private=0 OR recipe.user_id = ?);";
+      query =
+        "SELECT recipe.recipe_id, recipe.recipe_name,recipe.recipe_desc, recipe.recipe_img, recipe.likes, recipe.is_private FROM recipe INNER JOIN favorite ON recipe.recipe_id = favorite.recipe_id  WHERE favorite.user_id = ? AND (recipe.is_private=0 OR recipe.user_id = ?);";
       values = [user_id, user_id];
     }
   } else {
@@ -145,20 +151,25 @@ router.get("/api/recipes/user/:user_id", requireAuth, async (req, res) => {
   disconnect(db);
 });
 
-router.get("/api/recipes/user/:user_id/favorite/:recipe_id", requireAuth, (req, res) => {
-  let db = getConnection(req.user.role);
-  
-  //add filtering
-  let user_id = req.params["user_id"];
-  let recipe_id = req.params["recipe_id"];
-  let query = "";
-  let values = "";
-  if (req.user.role === 'admin') {
-    query = "SELECT favorite.recipe_id, favorite.user_id, is_private FROM favorite JOIN recipe ON favorite.recipe_id = recipe.recipe_id WHERE favorite.user_id = ? AND favorite.recipe_id = ?;";
-  } else {
-    query = "SELECT favorite.recipe_id, favorite.user_id, is_private FROM favorite JOIN recipe ON favorite.recipe_id = recipe.recipe_id  WHERE favorite.user_id = ? AND favorite.recipe_id = ? AND (is_private=0 OR favorite.user_id = ? );";
-  }
-  values = [user_id, recipe_id, user_id];
+router.get(
+  "/api/recipes/user/:user_id/favorite/:recipe_id",
+  requireAuth,
+  (req, res) => {
+    let db = getConnection(req.user.role);
+
+    //add filtering
+    let user_id = req.params["user_id"];
+    let recipe_id = req.params["recipe_id"];
+    let query = "";
+    let values = "";
+    if (req.user.role === "admin") {
+      query =
+        "SELECT favorite.recipe_id, favorite.user_id, is_private FROM favorite JOIN recipe ON favorite.recipe_id = recipe.recipe_id WHERE favorite.user_id = ? AND favorite.recipe_id = ?;";
+    } else {
+      query =
+        "SELECT favorite.recipe_id, favorite.user_id, is_private FROM favorite JOIN recipe ON favorite.recipe_id = recipe.recipe_id  WHERE favorite.user_id = ? AND favorite.recipe_id = ? AND (is_private=0 OR favorite.user_id = ? );";
+    }
+    values = [user_id, recipe_id, user_id];
 
     db.query(query, values, (error, result, fields) => {
       if (result && result.length) {
@@ -171,8 +182,9 @@ router.get("/api/recipes/user/:user_id/favorite/:recipe_id", requireAuth, (req, 
         });
       }
     });
-  disconnect(db);
-});
+    disconnect(db);
+  }
+);
 
 router.get("/api/recipes/ingredients", requireAuth, (req, res) => {
   let db = getConnection(req.user.role);
@@ -244,51 +256,50 @@ router.post("/api/recipes/:recipe_name", (req, res) => {
   let values;
   const userRole = getUserRole(req.body.user_id);
   console.log("role", userRole);
-  if (userRole === 'admin') {
-    query = "SELECT * FROM recipe INNER JOIN ingredient_has_recipe ON recipe.recipe_id = ingredient_has_recipe.recipe_id INNER JOIN ingredient ON ingredient_has_recipe.ingredient_id = ingredient.ingredient_id INNER JOIN measurement ON ingredient.measurement_id = measurement.measurement_id WHERE recipe.recipe_name=?;";
-    values = [req.params.recipe_name]
+  if (userRole === "admin") {
+    query =
+      "SELECT * FROM recipe INNER JOIN ingredient_has_recipe ON recipe.recipe_id = ingredient_has_recipe.recipe_id INNER JOIN ingredient ON ingredient_has_recipe.ingredient_id = ingredient.ingredient_id INNER JOIN measurement ON ingredient.measurement_id = measurement.measurement_id WHERE recipe.recipe_name=?;";
+    values = [req.params.recipe_name];
   } else {
-    query = "SELECT * FROM recipe INNER JOIN ingredient_has_recipe ON recipe.recipe_id = ingredient_has_recipe.recipe_id INNER JOIN ingredient ON ingredient_has_recipe.ingredient_id = ingredient.ingredient_id INNER JOIN measurement ON ingredient.measurement_id = measurement.measurement_id WHERE recipe.recipe_name=? AND (recipe.is_private=0 OR recipe.user_id = ?);";
-    values = [req.params.recipe_name, req.body.user_id]
+    query =
+      "SELECT * FROM recipe INNER JOIN ingredient_has_recipe ON recipe.recipe_id = ingredient_has_recipe.recipe_id INNER JOIN ingredient ON ingredient_has_recipe.ingredient_id = ingredient.ingredient_id INNER JOIN measurement ON ingredient.measurement_id = measurement.measurement_id WHERE recipe.recipe_name=? AND (recipe.is_private=0 OR recipe.user_id = ?);";
+    values = [req.params.recipe_name, req.body.user_id];
   }
-  db.query(
-    query, values,
-    (error, result, fields) => {
-      if (result && result.length !== 0) {
-        //write recipe to object
-        const ingredients = [];
-        for (let ingredient of result) {
-          ingredient = sanitize(ingredient);
-          ingredients.push(
-            new Ingredient(
-              ingredient.ingredient_id,
-              ingredient.ingredient_name,
-              ingredient.measurement_name,
-              ingredient.amount
-            )
-          );
-        }
-        result[0] = sanitize(result[0]);
-        const recipe = new Recipe(
-          result[0].recipe_id,
-          result[0].recipe_name,
-          result[0].recipe_desc,
-          result[0].user_id,
-          result[0].recipe_img,
-          result[0].likes,
-          result[0].is_private
+  db.query(query, values, (error, result, fields) => {
+    if (result && result.length !== 0) {
+      //write recipe to object
+      const ingredients = [];
+      for (let ingredient of result) {
+        ingredient = sanitize(ingredient);
+        ingredients.push(
+          new Ingredient(
+            ingredient.ingredient_id,
+            ingredient.ingredient_name,
+            ingredient.measurement_name,
+            ingredient.amount
+          )
         );
-        res.status(200).send({
-          recipe: recipe,
-          ingredients: ingredients,
-        });
-      } else {
-        res.status(200).send({
-          message: "This recipe does not exists.",
-        });
       }
+      result[0] = sanitize(result[0]);
+      const recipe = new Recipe(
+        result[0].recipe_id,
+        result[0].recipe_name,
+        result[0].recipe_desc,
+        result[0].user_id,
+        result[0].recipe_img,
+        result[0].likes,
+        result[0].is_private
+      );
+      res.status(200).send({
+        recipe: recipe,
+        ingredients: ingredients,
+      });
+    } else {
+      res.status(200).send({
+        message: "This recipe does not exists.",
+      });
     }
-  );
+  });
   disconnect(db);
 });
 
@@ -516,7 +527,7 @@ router.put("/api/recipes", requireAuth, (req, res) => {
       message: "Success!",
     });
   });
-  disconnect(db)
+  disconnect(db);
 });
 
 //delete from favorite
@@ -543,7 +554,7 @@ router.delete("/api/recipes/favorites/modify", requireAuth, (req, res) => {
 });
 
 async function getUserRole(userId) {
-  role = 'guest';
+  role = "guest";
   if (userId) {
     let db = await getConnection();
     console.log(db);
@@ -554,7 +565,8 @@ async function getUserRole(userId) {
         if (!error && result && result.length === 1) {
           role = result[0];
         }
-    });
+      }
+    );
     disconnect(db);
   }
   return role;
